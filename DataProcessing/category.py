@@ -12,6 +12,8 @@ client = Elasticsearch(
 )
 
 #res = retrieval.get_ids(client, index="logs-omm_one", query='process where host.os.type == "windows" and event.type == "start" and process.parent.name : "Zoom.exe" and process.name : ("cmd.exe", "powershell.exe", "pwsh.exe", "powershell_ise.exe")')
-res = retrieval.get_ids(client, index="logs-omm_one", query='process where host.os.type == "windows" and event.type == "start"')
+#res = retrieval.get_ids(client, index="logs-omm_one", query='process where host.os.type == "windows" and event.type == "start"')
+#res = retrieval.toml_read_query("/home/jackal/PycharmProjects/scripts1/input/detection-rules/rules/windows/command_and_control_rdp_tunnel_plink.toml")
+res = retrieval.dir_toml_read("/home/jackal/PycharmProjects/scripts1/input/detection-rules/rules")
 
 print(res)
