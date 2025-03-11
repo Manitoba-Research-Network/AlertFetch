@@ -2,8 +2,10 @@ from elasticsearch import Elasticsearch
 import lib.retrieval as retrieval
 import os
 from dotenv import load_dotenv
-from lib.output import pretty_print
+import sys
 load_dotenv()
+
+RULE_DIR = sys.argv[1]
 
 
 client = Elasticsearch(
@@ -11,9 +13,14 @@ client = Elasticsearch(
     api_key= os.getenv("API_KEY")
 )
 
-#res = retrieval.get_ids(client, index="logs-omm_one", query='process where host.os.type == "windows" and event.type == "start" and process.parent.name : "Zoom.exe" and process.name : ("cmd.exe", "powershell.exe", "pwsh.exe", "powershell_ise.exe")')
-#res = retrieval.get_ids(client, index="logs-omm_one", query='process where host.os.type == "windows" and event.type == "start"')
-#res = retrieval.toml_read_query("/home/jackal/PycharmProjects/scripts1/input/detection-rules/rules/windows/command_and_control_rdp_tunnel_plink.toml")
-res = retrieval.dir_toml_read("/home/jackal/PycharmProjects/scripts1/input/detection-rules/rules")
+# Read Rules
+rules = retrieval.dir_toml_read(RULE_DIR)
+print(rules)
 
-print(res)
+# fetch events for each rule
+
+# fetch non alerted events
+
+# save events
+
+
