@@ -47,14 +47,17 @@ def dir_toml_read(directory:str, exclude = ("_deprecated", "ml"))-> [str]:
     return queries
 
 def get_events(client:Elasticsearch, index:str, query:str) -> dict:#todo this needs to handle paginated results
-    res = client.eql.search(index=index, query=query, fields=[])
+    res = client.eql.search(index=index, query=query, fields=[], size=10000)
     try:
         hits = res.raw["hits"]["events"]
     except KeyError:
         hits = res.raw["hits"]["sequences"]
     output = {}
     for hit in hits:
-        output[hit["_id"]] = hit
+        output[hit["_id"]] = {**hit, "IPG5_source":query}
+    #if len(hits) == 0:
+    #    print(query)
+    #    print("\n")
     return output
 
 def get_inverse_ids(client:Elasticsearch,  index:str, ids:list):
