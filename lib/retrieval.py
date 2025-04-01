@@ -2,6 +2,7 @@ import os
 
 from elasticsearch import Elasticsearch
 import toml
+import datetime
 
 def get_ids(client:Elasticsearch,index:str, query:str)-> set:
     res = client.eql.search(index=index, query=query, fields=[])
@@ -87,3 +88,15 @@ def _list_to_string(l):
     for item in l:
         out += f"\"{item}\","
     return out[:-1] if len(out) >1 else ""
+
+def get_alert_ids(client:Elasticsearch, index:str, date_start:str = "1970-01-01T01:00:00Z", date_end:str = ""):
+    if date_end == "":
+        date_end = datetime.datetime.now(datetime.UTC).isoformat()
+    res = client.esql.query(query=f"""
+    FROM {index} 
+    | WHERE @timestamp > "{date_start}" AND @timestamp < "{date_end}"
+    | WHERE event.id != ""
+    | KEEP event.id
+    | LIMIT 10000
+    """)
+    return set(i[0] for i in res["values"]) # ESQL returns a list of lists this decomposes the inner lists to a list
