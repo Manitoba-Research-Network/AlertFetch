@@ -14,13 +14,16 @@ client = Elasticsearch(
 )
 
 
-out = client.eql.search(index=".internal.alerts-security.alerts-default-*",query="any where 1==1", size=10000)
-pretty_print(out)
+# todo move to library
+# todo time filtering
+res = client.esql.query(query="""FROM .internal.alerts-security.alerts-default-* 
+| WHERE @timestamp < "2025-04-01T16:47:44Z" 
+| WHERE event.id != ""
+| KEEP event.id
+| LIMIT 10000
+""")
+print(res)
 
-for entry in out.raw["hits"]['events']:
-    if "event" not in entry["_source"]:
-        print("passed")
-        continue
-    print(entry["_source"]["event"]["id"])
-    print(entry["_source"]["@timestamp"])
-#print(out)
+ids = set(i[0] for i in res["values"]) # ESQL returns a list of lists this decomposes the inner lists to a list
+
+print(ids)
