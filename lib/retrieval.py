@@ -96,7 +96,30 @@ def get_alert_ids(client:Elasticsearch, index:str, date_start:str = "1970-01-01T
     FROM {index} 
     | WHERE @timestamp > "{date_start}" AND @timestamp < "{date_end}"
     | WHERE event.id != ""
-    | KEEP event.id
+    | KEEP event.id, signal.ancestors.index
     | LIMIT 10000
     """)
-    return set(i[0] for i in res["values"]) # ESQL returns a list of lists this decomposes the inner lists to a list
+    ids = {}
+    for event_id, index in res["values"]:
+        if index not in ids:
+            ids[index] = set()
+        ids[index].add(event_id)
+    return ids
+
+def get_from_ids(client:Elasticsearch, ids:dict):
+    out = []
+    for index, id_list in ids.items():
+        res = client.eql.search(index=index,query=f"any where event.id in ({_list_to_string(id_list)})", size=10000)
+        out.extend(res.raw["hits"]["events"])
+    return out
+
+
+
+
+
+
+
+
+
+
+
