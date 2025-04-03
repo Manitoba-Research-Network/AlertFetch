@@ -94,7 +94,7 @@ def get_alert_ids(client:Elasticsearch, index:str, date_start:str = "1970-01-01T
         date_end = datetime.datetime.now(datetime.UTC).isoformat()
     res = client.esql.query(query=f"""
     FROM {index} 
-    | WHERE @timestamp > "{date_start}" AND @timestamp < "{date_end}"
+    | WHERE @timestamp > {date_start} AND @timestamp < {date_end}
     | WHERE event.id != ""
     | KEEP event.id, signal.ancestors.index
     | LIMIT 10000
