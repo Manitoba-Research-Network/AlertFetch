@@ -114,6 +114,9 @@ def get_from_ids(client:Elasticsearch, ids:dict):
     return out
 
 
+def get_inverse_from_ids(client:Elasticsearch, ids:dict):
+    pass # todo this should pull the events that didnt cause alerts from each index
+
 
 
 
