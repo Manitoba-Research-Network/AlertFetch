@@ -5,16 +5,21 @@ import sys
 
 from lib.retrieval import get_alert_ids, get_from_ids
 
-load_dotenv()
 
-client = Elasticsearch(
-    hosts=[os.getenv("ES_URL")],
-    api_key= os.getenv("API_KEY")
-)
+def main(es_url, api_key, **kwargs):
+    client = Elasticsearch(
+        hosts=[es_url],
+        api_key= api_key
+    )
 
 
-ids = get_alert_ids(client, ".internal.alerts-security.alerts-default-*")
+    ids = get_alert_ids(client, ".internal.alerts-security.alerts-default-*")
 
-events = get_from_ids(client,ids)
+    events = get_from_ids(client,ids)
 
-print(events)
+    print(events)
+
+
+if __name__ == "__main__":
+    load_dotenv()
+    main(os.getenv("ES_URL"), os.getenv("API_KEY"))
