@@ -18,4 +18,3 @@ ids = get_alert_ids(client, ".internal.alerts-security.alerts-default-*")
 events = get_from_ids(client,ids)
 
 print(events)
-print(len(events))
