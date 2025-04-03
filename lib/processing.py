@@ -1,6 +1,11 @@
 exclude = [
+    ["_index"],
+    ["_id"],
     ["_source", "ecs"],
-    ["_index"]
+    ["_source", "@timestamp"],
+    ["_source", "data_stream"],
+    ["_source", "elastic"],
+    ["_source", 'agent']
 ]
 
 #todo this may need to be moved to a class so the field list can be defined by a config file (if we want that)

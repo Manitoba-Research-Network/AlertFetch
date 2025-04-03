@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 import sys
 
+from lib.processing import clean_entry
 from lib.retrieval import get_alert_ids, get_from_ids
 
 DEFAULT_INDEX_PAT = ".internal.alerts-security.alerts-default-*"
@@ -20,7 +21,9 @@ def main(es_url, api_key, index, start, end):
 
     events = get_from_ids(client,ids)
 
-    print(events)
+    cleaned = [clean_entry(e) for e in events]
+
+    print(cleaned)
 
 
 if __name__ == "__main__":
