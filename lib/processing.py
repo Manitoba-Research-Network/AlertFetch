@@ -18,8 +18,12 @@ def clean_entry(entry):
     for ex in exclude:
         opp = entry
         for field in ex[:-1]:
+            if field not in entry:
+                entry = None
+                break
             opp = entry[field]
-        opp.pop(ex[-1])
+        if ex[-1] in opp and opp is not None:
+            opp.pop(ex[-1])
     return entry
 
 def zip_alerted(alert, no_alert):
@@ -30,3 +34,6 @@ def zip_alerted(alert, no_alert):
     :return: todo
     """
     pass
+
+def clean_entries(entries):
+    return [clean_entry(e) for e in entries]

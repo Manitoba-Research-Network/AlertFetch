@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 import sys
 import datetime
 
-from lib.processing import clean_entry
+from lib.processing import clean_entry, clean_entries
 from lib.retrieval import get_alert_ids, get_from_ids, get_inverse_from_ids
 
 DEFAULT_INDEX_PAT = ".internal.alerts-security.alerts-default-*"
@@ -21,14 +21,14 @@ def main(es_url, api_key, index, start, end):
     ids = get_alert_ids(client, index, date_start=start, date_end=end)
 
     events = get_from_ids(client,ids)
-
-    cleaned = [clean_entry(e) for e in events]
-
-    print(cleaned)
+    cleaned = clean_entries(events)
 
     eventsPass = get_inverse_from_ids(client, ids)
+    cleanedPass = clean_entries(eventsPass)
 
-    print(eventsPass)
+
+    print(cleaned)
+    print(cleanedPass)
 
 
 if __name__ == "__main__":
