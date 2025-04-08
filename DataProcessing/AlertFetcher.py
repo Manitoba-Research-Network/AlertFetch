@@ -2,13 +2,14 @@ from elasticsearch import Elasticsearch
 import os
 from dotenv import load_dotenv
 import sys
+import datetime
 
 from lib.processing import clean_entry
-from lib.retrieval import get_alert_ids, get_from_ids
+from lib.retrieval import get_alert_ids, get_from_ids, get_inverse_from_ids
 
 DEFAULT_INDEX_PAT = ".internal.alerts-security.alerts-default-*"
-DEFAULT_START_DATE = "NOW() - 5 hour"
-DEFAULT_END_DATE = "NOW()"
+DEFAULT_START_DATE = (datetime.datetime.now(datetime.UTC) - datetime.timedelta(hours=5)).isoformat()
+DEFAULT_END_DATE = datetime.datetime.now(datetime.UTC).isoformat()
 
 def main(es_url, api_key, index, start, end):
     client = Elasticsearch(
@@ -24,6 +25,10 @@ def main(es_url, api_key, index, start, end):
     cleaned = [clean_entry(e) for e in events]
 
     print(cleaned)
+
+    eventsPass = get_inverse_from_ids(client, ids)
+
+    print(eventsPass)
 
 
 if __name__ == "__main__":
