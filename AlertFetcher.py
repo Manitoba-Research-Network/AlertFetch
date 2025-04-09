@@ -1,3 +1,4 @@
+#!/bin/python
 from elasticsearch import Elasticsearch
 import os
 from dotenv import load_dotenv
