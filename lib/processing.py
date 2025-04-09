@@ -21,4 +21,9 @@ def clean_entry(entry):
     return entry
 
 def clean_entries(entries):
-    return [clean_entry(e) for e in entries]
+    out = []
+    for e in entries:
+        clean = {"meta":{"id": e["_id"], "idx": e["_index"]}} #!Because we are editing the entry directly with clean, we must do these lines seperatly
+        clean["entry"] = clean_entry(e)
+        out.append(clean)
+    return out
