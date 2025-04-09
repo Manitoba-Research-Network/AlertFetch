@@ -23,7 +23,7 @@ API_KEY=<Elastic API Key>
 To get alert source events and events which did not trigger an event 
 during a time period (defaulting to the last 5 hours)
 ```
-python3 AlertFetcher.py out=<output file> index=[alert index pattern] end=[ISO Timestamp] start=[ISO Timestamp]
+python3 AlertFetcher.py out=<output file> no_alert=[output file] index=[alert index pattern] end=[ISO Timestamp] start=[ISO Timestamp]
 ```
 
 `end` and `start` specify the timeperiod to search through for alerts/events 
@@ -33,3 +33,4 @@ python3 AlertFetcher.py out=<output file> index=[alert index pattern] end=[ISO T
 
 `out` specifies a file to output the `jsonl` data to. **This is the only required argument.**
 
+`no_alert` specifies a file to output the non alerting events to (for use as input into a model).
