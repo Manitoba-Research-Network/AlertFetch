@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import sys
 import datetime
 
-from lib.output import write_jsonl
+from lib.output import write_jsonl, write_jsonl_no_label
 from lib.processing import clean_entry, clean_entries
 from lib.retrieval import get_alert_ids, get_from_ids, get_inverse_from_ids
 
@@ -13,7 +13,7 @@ DEFAULT_INDEX_PAT = ".internal.alerts-security.alerts-default-*"
 DEFAULT_START_DATE = (datetime.datetime.now(datetime.UTC) - datetime.timedelta(hours=5)).isoformat()
 DEFAULT_END_DATE = datetime.datetime.now(datetime.UTC).isoformat()
 
-def main(es_url, api_key, index, start, end, out):
+def main(es_url, api_key, index, start, end, out, no_alert = ""):
     client = Elasticsearch(
         hosts=[es_url],
         api_key= api_key
@@ -28,7 +28,9 @@ def main(es_url, api_key, index, start, end, out):
     eventsPass = get_inverse_from_ids(client, ids)
     cleanedPass = clean_entries(eventsPass)
 
-    write_jsonl("out.jsonl", cleaned, cleanedPass)
+    write_jsonl(out, cleaned, cleanedPass)
+    if no_alert != "":
+        write_jsonl_no_label(no_alert, cleanedPass)
 
 
 if __name__ == "__main__":
@@ -40,6 +42,7 @@ if __name__ == "__main__":
         print("'out' is a required keyword parameter")
         exit(1)
     out = kwargs['out']
+    no_alert = kwargs['no_alert'] if 'no_alert' in kwargs else ""
 
     load_dotenv()
-    main(os.getenv("ES_URL"), os.getenv("API_KEY"), index, start, end, out)
+    main(os.getenv("ES_URL"), os.getenv("API_KEY"), index, start, end, out, no_alert)

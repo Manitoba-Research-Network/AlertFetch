@@ -16,3 +16,8 @@ def write_jsonl(path,alert, no_alert):
             f.write(json.dumps({"text":json.dumps(e["entry"]), "label":1, **e["meta"]}) + "\n")
         for e in no_alert:
             f.write(json.dumps({"text": json.dumps(e["entry"]), "label": 0, **e["meta"]}) + "\n")
+
+def write_jsonl_no_label(path, events):
+    with open(path, "w") as f:
+        for e in events:
+            f.write(json.dumps({"text":json.dumps(e["entry"]), **e["meta"]}) + "\n")
