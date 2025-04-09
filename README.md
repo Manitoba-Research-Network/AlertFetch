@@ -15,6 +15,8 @@ The script requires a file called `.env` with the following format:
 ES_URL=<Elastic API URL>
 API_KEY=<Elastic API Key>
 ```
+#### config.json
+`exclude`: Contains a list of json paths to remove from events before writing to the output.
 
 ### Running
 
