@@ -38,7 +38,7 @@ def get_from_ids(client:Elasticsearch, ids:dict):
 
 def get_inverse_from_ids(client:Elasticsearch, ids:dict, date_start:str = "1970-01-01T01:00:00Z", date_end:str = datetime.datetime.now().isoformat()):
     out = []
-    for index, id_list in ids.items(): # todo add datetime to this
+    for index, id_list in ids.items():
         res = client.eql.search(index=index,query=f"any where event.id not in ({_list_to_string(id_list)}) and @timestamp < \"{date_end}\" and @timestamp > \"{date_start}\"", size=10000)
         out.extend(res.raw["hits"]["events"])
     return out
