@@ -6,7 +6,7 @@ Simple script for fetching alert source events and non alerting events, then pro
 #### Python Packages
 Install required packages with:
 
-```pip install -r requirements.tx```
+```pip install -r requirements.txt```
 
 #### .env file
 The script requires a file called `.env` with the following format:
