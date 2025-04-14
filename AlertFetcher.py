@@ -20,16 +20,20 @@ def main(es_url, api_key, index, start, end, out, no_alert = ""):
     )
 
 
+    # get alert source ids
     ids = get_alert_ids(client, index, date_start=start, date_end=end)
 
+    # get and clean source events
     events = get_from_ids(client,ids)
     cleaned = clean_entries(events)
 
+    # get and clean non source events
     eventsPass = get_inverse_from_ids(client, ids, date_start=start, date_end=end)
     cleanedPass = clean_entries(eventsPass)
 
+    # output
     write_jsonl(out, cleaned, cleanedPass)
-    if no_alert != "":
+    if no_alert != "": # output separate non-alerting events if path specified
         write_jsonl_no_label(no_alert, cleanedPass)
 
 
