@@ -25,7 +25,7 @@ def main(es_url, api_key, index, start, end, out, no_alert = ""):
     events = get_from_ids(client,ids)
     cleaned = clean_entries(events)
 
-    eventsPass = get_inverse_from_ids(client, ids)
+    eventsPass = get_inverse_from_ids(client, ids, date_start=start, date_end=end)
     cleanedPass = clean_entries(eventsPass)
 
     write_jsonl(out, cleaned, cleanedPass)
@@ -34,6 +34,7 @@ def main(es_url, api_key, index, start, end, out, no_alert = ""):
 
 
 if __name__ == "__main__":
+    #* Load in command line args
     kwargs = dict(arg.split('=') for arg in sys.argv[1:]) # 0 idx is name of file
     start = kwargs['start'] if "start" in kwargs else DEFAULT_START_DATE
     end = kwargs['end'] if 'end' in kwargs else DEFAULT_END_DATE

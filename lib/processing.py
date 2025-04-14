@@ -21,6 +21,12 @@ def clean_entry(entry):
     return entry
 
 def clean_entries(entries):
+    """
+    remove fields from each entry in a list
+
+    :param entries: list of entries to clean
+    :return: the cleaned list (NOTE: this function operates directly on the list members)
+    """
     out = []
     for e in entries:
         clean = {"meta":{"id": e["_id"], "idx": e["_index"]}} #!Because we are editing the entry directly with clean, we must do these lines seperatly
