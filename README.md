@@ -1,6 +1,8 @@
 # AlertFetcher
 Simple script for fetching alert source events and non alerting events, then processing them into the `jsonl` data for use with Llama.
 
+Originally forked from: https://github.com/IPG5/AlertFetch
+
 ## Usage
 ### Environment
 #### Python Packages
