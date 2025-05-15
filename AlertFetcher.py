@@ -1,8 +1,7 @@
 #!/bin/python
+import json
+
 from elasticsearch import Elasticsearch
-import os
-from dotenv import load_dotenv
-import sys
 import datetime
 import argparse
 
@@ -37,11 +36,15 @@ def main(es_url, api_key, index, start, end, out, no_alert = ""):
     if no_alert != "": # output separate non-alerting events if path specified
         write_jsonl_no_label(no_alert, cleanedPass)
 
+def get_apis():
+    with open("apis.json") as f:
+        return json.loads(f.read())
+
 
 if __name__ == "__main__":
     #* Load in command line args
     parser = argparse.ArgumentParser(
-        prog="AlertFetch CLI",
+        prog="./AlertFetcher.py",
         description='Script for fetching alerts from Elasticsearch'
     )
 
@@ -65,6 +68,9 @@ if __name__ == "__main__":
                         default="",
                         help='path to output non alerting events',
                         type=str)
+    parser.add_argument('api',
+                        type=str,
+                        help='API to use from apis.json')
 
     args = parser.parse_args()
     start = args.start_date
@@ -73,8 +79,13 @@ if __name__ == "__main__":
     out = args.out
     no_alert = args.no_alert
 
-    load_dotenv()
-    main(os.getenv("ES_URL"), os.getenv("API_KEY"), index, start, end, out, no_alert)
+    try:
+        api = get_apis()[args.api]
+    except KeyError:
+        print(f"API '{args.api}' was not found in the apis.json file.")
+        exit(1)
+
+    main(api["uri"], api["key"], index, start, end, out, no_alert)
 
 
 
