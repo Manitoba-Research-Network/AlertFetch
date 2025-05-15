@@ -4,6 +4,7 @@ import os
 from dotenv import load_dotenv
 import sys
 import datetime
+import argparse
 
 from lib.output import write_jsonl, write_jsonl_no_label
 from lib.processing import clean_entry, clean_entries
@@ -39,15 +40,47 @@ def main(es_url, api_key, index, start, end, out, no_alert = ""):
 
 if __name__ == "__main__":
     #* Load in command line args
-    kwargs = dict(arg.split('=') for arg in sys.argv[1:]) # 0 idx is name of file
-    start = kwargs['start'] if "start" in kwargs else DEFAULT_START_DATE
-    end = kwargs['end'] if 'end' in kwargs else DEFAULT_END_DATE
-    index = kwargs['index'] if 'index' in kwargs else DEFAULT_INDEX_PAT
-    if "out" not in kwargs:
-        print("'out' is a required keyword parameter")
-        exit(1)
-    out = kwargs['out']
-    no_alert = kwargs['no_alert'] if 'no_alert' in kwargs else ""
+    parser = argparse.ArgumentParser(
+        prog="AlertFetch CLI",
+        description='Script for fetching alerts from Elasticsearch'
+    )
+
+    parser.add_argument('-s', '--start-date',
+                        default=DEFAULT_START_DATE,
+                        help='Start date for alerts',
+                        type=str)
+    parser.add_argument('-e', '--end-date',
+                        default=DEFAULT_END_DATE,
+                        help='End date for alerts',
+                        type=str)
+    parser.add_argument('-o', '--out',
+                        required=True,
+                        help='Output file path',
+                        type=str)
+    parser.add_argument('-i', '--index',
+                        default=DEFAULT_INDEX_PAT,
+                        help='Elasticsearch index pattern',
+                        type=str)
+    parser.add_argument('--no-alert',
+                        default="",
+                        help='path to output non alerting events',
+                        type=str)
+
+    args = parser.parse_args()
+    start = args.start_date
+    end = args.end_date
+    index = args.index
+    out = args.out
+    no_alert = args.no_alert
 
     load_dotenv()
     main(os.getenv("ES_URL"), os.getenv("API_KEY"), index, start, end, out, no_alert)
+
+
+
+
+
+
+
+
+
