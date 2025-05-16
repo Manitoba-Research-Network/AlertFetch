@@ -13,7 +13,7 @@ DEFAULT_INDEX_PAT = ".internal.alerts-security.alerts-default-*"
 DEFAULT_START_DATE = (datetime.datetime.now(datetime.UTC) - datetime.timedelta(hours=5)).isoformat()
 DEFAULT_END_DATE = datetime.datetime.now(datetime.UTC).isoformat()
 
-def main(es_url, api_key, index, start, end, out, no_alert = ""):
+def main(es_url, api_key, index, start, end, out, no_alert = "", limit = 100):
     client = Elasticsearch(
         hosts=[es_url],
         api_key= api_key
@@ -24,11 +24,11 @@ def main(es_url, api_key, index, start, end, out, no_alert = ""):
     ids = get_alert_ids(client, index, date_start=start, date_end=end)
 
     # get and clean source events
-    events = get_from_ids(client,ids)
+    events = get_from_ids(client,ids, limit=limit)
     cleaned = clean_entries(events)
 
     # get and clean non source events
-    eventsPass = get_inverse_from_ids(client, ids, date_start=start, date_end=end)
+    eventsPass = get_inverse_from_ids(client, ids, date_start=start, date_end=end, limit=limit)
     cleanedPass = clean_entries(eventsPass)
 
     # output
@@ -71,6 +71,10 @@ if __name__ == "__main__":
     parser.add_argument('api',
                         type=str,
                         help='API to use from apis.json')
+    parser.add_argument('-l','--limit',
+                         type=int,
+                         default=10000,
+                         help='Limit on event queries')
 
     args = parser.parse_args()
     start = args.start_date
@@ -84,8 +88,7 @@ if __name__ == "__main__":
     except KeyError:
         print(f"API '{args.api}' was not found in the apis.json file.")
         exit(1)
-
-    main(api["uri"], api["key"], index, start, end, out, no_alert)
+    main(api["uri"], api["key"], index, start, end, out, no_alert, limit = args.limit)
 
 
 

@@ -43,25 +43,27 @@ def get_alert_ids(client:Elasticsearch, index:str, date_start:str = "1970-01-01T
         ids[index].add(event_id)
     return ids
 
-def get_from_ids(client:Elasticsearch, ids:dict):
+def get_from_ids(client:Elasticsearch, ids:dict, limit:int=100):
     """
     get source events from alerts
 
     :param client: client to use for the request
     :param ids: dict of id sets
+    :param limit: limit on number of events to fetch
     :return: list of source events
     """
     out = []
     for index, id_list in ids.items():
-        res = client.eql.search(index=index,query=f"any where event.id in ({_list_to_string(id_list)})", size=10000)
+        res = client.eql.search(index=index,query=f"any where event.id in ({_list_to_string(id_list)})", size=limit)
         out.extend(res.raw["hits"]["events"])
     return out
 
 
-def get_inverse_from_ids(client:Elasticsearch, ids:dict, date_start:str = "1970-01-01T01:00:00Z", date_end:str = datetime.datetime.now().isoformat()):
+def get_inverse_from_ids(client:Elasticsearch, ids:dict, date_start:str = "1970-01-01T01:00:00Z", date_end:str = datetime.datetime.now().isoformat(), limit:int = 100):
     """
     get events that did not trigger alerts within a time range
 
+    :param limit: limit on number of events to fetch
     :param client: client to use for the request
     :param ids: dict of id sets
     :param date_start: start time for the time range
@@ -70,7 +72,7 @@ def get_inverse_from_ids(client:Elasticsearch, ids:dict, date_start:str = "1970-
     """
     out = []
     for index, id_list in ids.items():
-        res = client.eql.search(index=index,query=f"any where event.id not in ({_list_to_string(id_list)}) and @timestamp < \"{date_end}\" and @timestamp > \"{date_start}\"", size=10000)
+        res = client.eql.search(index=index,query=f"any where event.id not in ({_list_to_string(id_list)}) and @timestamp < \"{date_end}\" and @timestamp > \"{date_start}\"", size=limit)
         out.extend(res.raw["hits"]["events"])
     return out
 
