@@ -13,6 +13,17 @@ DEFAULT_INDEX_PAT = ".internal.alerts-security.alerts-default-*"
 DEFAULT_START_DATE = (datetime.datetime.now(datetime.UTC) - datetime.timedelta(hours=5)).isoformat()
 DEFAULT_END_DATE = datetime.datetime.now(datetime.UTC).isoformat()
 
+def confirm(message):
+    """
+    asks the user to confirm with 'y', exits the program on any other input
+
+    :param message: message to display
+    """
+    confirmation = input(f"{message} (y/n): ")
+    if confirmation.lower() != "y":
+        print("Aborting...")
+        exit(1)
+
 def main(es_url, api_key, index, start, end, out, no_alert = "", limit = 100):
     client = Elasticsearch(
         hosts=[es_url],
