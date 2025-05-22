@@ -5,6 +5,7 @@ from elasticsearch import Elasticsearch
 import datetime
 import argparse
 
+import lib.output
 from lib.output import write_jsonl, write_jsonl_no_label
 from lib.processing import clean_entry, clean_entries
 from lib.retrieval import get_alert_ids, get_from_ids, get_inverse_from_ids
@@ -78,6 +79,11 @@ if __name__ == "__main__":
                          type=int,
                          default=10000,
                          help='Limit on event queries')
+    parser.add_argument('--combine',
+                        default=False,
+                        type=bool,
+                        help='Combine all apis into single file `combined.jsonl`',
+                        action=argparse.BooleanOptionalAction)
 
     args = parser.parse_args()
     start = args.start_date
@@ -90,6 +96,8 @@ if __name__ == "__main__":
     if args.api == "ALL": # run for all
         for key, val in apis.items():
             main(val["uri"], val["key"], index, start, end, out, key, no_alert, args.limit)
+        if args.combine:
+            lib.output.combine_jsonl(out)
     else: # run for single
         try:
             api = apis[args.api]
@@ -97,6 +105,7 @@ if __name__ == "__main__":
             print(f"API '{args.api}' was not found in the apis.json file.")
             exit(1)
         main(api["uri"], api["key"], index, start, end, out, no_alert, args.api, limit = args.limit)
+
 
 
 
