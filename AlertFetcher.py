@@ -28,11 +28,11 @@ def main(es_url, api_key, index, start, end, out, api, no_alert = "", limit = 10
 
     # get and clean source events
     events = get_from_ids(client,ids, limit=limit)
-    cleaned = clean_entries(events)
+    cleaned = clean_entries(events, api)
 
     # get and clean non source events
     eventsPass = get_inverse_from_ids(client, ids, date_start=start, date_end=end, limit=limit)
-    cleanedPass = clean_entries(eventsPass)
+    cleanedPass = clean_entries(eventsPass, api)
 
     # output
     write_jsonl(out + f"{api}.jsonl", cleaned, cleanedPass)
