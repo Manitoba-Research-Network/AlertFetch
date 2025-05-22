@@ -1,5 +1,6 @@
 from elastic_transport import ApiResponse
 import json
+import os
 
 
 def pretty_print(res: ApiResponse):
@@ -44,3 +45,28 @@ def write_jsonl_no_label(path, events):
     with open(path, "w") as f:
         for e in events:
             f.write(json.dumps({"text":json.dumps(e["entry"]), **e["meta"]}) + "\n")
+
+def combine_jsonl(path):
+    """
+    combine jsonl files in a directory into a single jsonl file (`combined.jsonl`)
+    :param path: path to directory to operate on
+    """
+    with open(path + "combined.jsonl", "w") as out_f:
+        for file in os.listdir(path):
+            if file == "combined.jsonl":
+                continue # ignore the output file
+            with open(path + "/" + file, "r") as in_f:
+                out_f.write(in_f.read())
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -7,5 +7,7 @@
     ["_source", "data_stream"],
     ["_source", "elastic"],
     ["_source", "agent"]
+  ],
+  "apis-all": [
   ]
 }

@@ -20,16 +20,19 @@ def clean_entry(entry):
             opp.pop(ex[-1])
     return entry
 
-def clean_entries(entries):
+def clean_entries(entries, api = None):
     """
     remove fields from each entry in a list
 
+    :param api: api identifier to add to metadata
     :param entries: list of entries to clean
     :return: the cleaned list (NOTE: this function operates directly on the list members)
     """
     out = []
     for e in entries:
         clean = {"meta":{"id": e["_id"], "idx": e["_index"]}} #!Because we are editing the entry directly with clean, we must do these lines seperatly
+        if api is not None:
+            clean["meta"]["api"] = api
         clean["entry"] = clean_entry(e)
         out.append(clean)
     return out
