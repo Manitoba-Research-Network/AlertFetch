@@ -33,7 +33,7 @@ def main(es_url, api_key, index, start, end, out, api, no_alert = "", limit = 10
 
     # get and clean non source events
     eventsPass = get_inverse_from_ids(client, ids, date_start=start, date_end=end, limit=limit)
-    cleanedPass = clean_entries(eventsPass, api)
+    cleanedPass = extract_metadata(eventsPass, api)
 
     # output
     write_jsonl(out + f"{api}.jsonl", cleaned, cleanedPass)
