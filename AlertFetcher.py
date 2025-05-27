@@ -7,7 +7,7 @@ import argparse
 
 import lib.output
 from lib.output import write_jsonl, write_jsonl_no_label
-from lib.processing import clean_entry, clean_entries
+from lib.processing import clean_entry, clean_entries, extract_metadata
 from lib.retrieval import get_alert_ids, get_from_ids, get_inverse_from_ids
 
 DEFAULT_INDEX_PAT = ".internal.alerts-security.alerts-default-*"
@@ -29,7 +29,7 @@ def main(es_url, api_key, index, start, end, out, api, no_alert = "", limit = 10
 
     # get and clean source events
     events = get_from_ids(client,ids, limit=limit)
-    cleaned = clean_entries(events, api)
+    cleaned = extract_metadata(events, api)
 
     # get and clean non source events
     eventsPass = get_inverse_from_ids(client, ids, date_start=start, date_end=end, limit=limit)

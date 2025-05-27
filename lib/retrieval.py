@@ -4,6 +4,8 @@ from elasticsearch import Elasticsearch
 import toml
 import datetime
 
+from lib.esql import res_to_dict
+
 
 def _list_to_string(l):
     """
@@ -54,8 +56,15 @@ def get_from_ids(client:Elasticsearch, ids:dict, limit:int=100):
     """
     out = []
     for index, id_list in ids.items():
-        res = client.eql.search(index=index,query=f"any where event.id in ({_list_to_string(id_list)})", size=limit)
-        out.extend(res.raw["hits"]["events"])
+        res = client.esql.query(
+            query=f"""
+            FROM {index} METADATA _index, _id
+            | WHERE event.id in ({_list_to_string(id_list)})
+            | LIMIT {limit}
+            """,
+            format="json"
+        )
+        out.extend(res_to_dict(res))
     return out
 
 
