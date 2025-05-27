@@ -104,7 +104,7 @@ if __name__ == "__main__":
         except KeyError:
             print(f"API '{args.api}' was not found in the apis.json file.")
             exit(1)
-        main(api["uri"], api["key"], index, start, end, out, no_alert, args.api, limit = args.limit)
+        main(api["uri"], api["key"], index, start, end, out, args.api, no_alert, limit = args.limit)
 
 
 
