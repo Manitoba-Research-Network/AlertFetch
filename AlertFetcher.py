@@ -1,14 +1,13 @@
 #!/bin/python
 import json
 
-from elasticsearch import Elasticsearch
 import datetime
 import argparse
 
 import lib.output
 from lib.output import write_jsonl, write_jsonl_no_label
 from lib.processing import extract_metadata
-from lib.retrieval import get_alert_ids, get_from_ids, get_inverse_from_ids
+from lib.retrieval import ESQLWrapper, QueryOptions
 
 DEFAULT_INDEX_PAT = ".internal.alerts-security.alerts-default-*"
 DEFAULT_START_DATE = (datetime.datetime.now(datetime.UTC) - datetime.timedelta(hours=5)).isoformat()
@@ -17,22 +16,18 @@ DEFAULT_END_DATE = datetime.datetime.now(datetime.UTC).isoformat()
 with open("config.json", "r") as f:
     config = json.load(f)
 
-def main(es_url, api_key, index, start, end, out, api, no_alert = "", limit = 100):
-    client = Elasticsearch(
-        hosts=[es_url],
-        api_key= api_key
-    )
+def main(client:ESQLWrapper, q_options:QueryOptions,index, out, api, no_alert = ""):
 
 
     # get alert source ids
-    ids = get_alert_ids(client, index, date_start=start, date_end=end)
+    ids = client.get_alert_ids(index, q_options)
 
     # get and clean source events
-    events = get_from_ids(client,ids, limit=limit)
+    events = client.get_from_ids(ids, q_options)
     cleaned = extract_metadata(events, api)
 
     # get and clean non source events
-    eventsPass = get_inverse_from_ids(client, ids, date_start=start, date_end=end, limit=limit)
+    eventsPass = client.get_inverse_from_ids(ids, q_options)
     cleanedPass = extract_metadata(eventsPass, api)
 
     # output
@@ -93,9 +88,11 @@ if __name__ == "__main__":
     no_alert = args.no_alert
 
     apis = get_apis()
+    q_options = QueryOptions(date_start=args.start_date, date_end=args.end_date, limit=args.limit)
     if args.api == "ALL": # run for all
         for key, val in apis.items():
-            main(val["uri"], val["key"], index, start, end, out, key, no_alert, args.limit)
+            client = ESQLWrapper(val["uri"], val["key"])
+            main(client, q_options, index, out, key, no_alert)
         if args.combine:
             lib.output.combine_jsonl(out)
     else: # run for single
@@ -104,7 +101,8 @@ if __name__ == "__main__":
         except KeyError:
             print(f"API '{args.api}' was not found in the apis.json file.")
             exit(1)
-        main(api["uri"], api["key"], index, start, end, out, args.api, no_alert, limit = args.limit)
+        client = ESQLWrapper(api["uri"], api["key"])
+        main(client, q_options, index, out, args.api, no_alert)
 
 
 

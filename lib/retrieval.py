@@ -19,77 +19,101 @@ def _list_to_string(l):
         out += f"\"{item}\","
     return out[:-1] if len(out) >1 else ""
 
-def get_alert_ids(client:Elasticsearch, index:str, date_start:str = "1970-01-01T01:00:00Z", date_end:str = ""):
+class QueryOptions:
     """
-    get ids of alert sources during a time period
+    Options for ESQLWrapper Queries
+    """
+    def __init__(self,
+                 date_start:str = "1970-01-01T01:00:00Z",
+                 date_end:str = datetime.datetime.now().isoformat(),
+                 limit:int=100,
+                 whitelist:list=None
+                 ):
+        """
+        :param date_start: start time for the time range
+        :param date_end: end time for the time range
+        :param limit: limit for events to fetch
+        """
+        if whitelist is None:
+            whitelist = []
+        self.date_start = date_start
+        self.date_end = date_end
+        self.limit = limit
+        self.whitelist = whitelist
 
-    :param client: client to use for the search
-    :param index: index pattern to search
-    :param date_start: start time for the time range
-    :param date_end:  end time for the time range
-    :return: dict of id sets in form {<index>:<set of ids>}
-    """
-    if date_end == "": # default to ending now
-        date_end = datetime.datetime.now(datetime.UTC).isoformat()
-    res = client.esql.query(query=f"""
-    FROM {index} 
-    | WHERE @timestamp > "{date_start}" AND @timestamp < "{date_end}"
-    | WHERE event.id != ""
-    | KEEP event.id, signal.ancestors.index
-    | LIMIT 10000
-    """)
-    ids = {}
-    for event_id, index in res["values"]:
-        if index not in ids:
-            ids[index] = set()
-        ids[index].add(event_id)
-    return ids
 
-def get_from_ids(client:Elasticsearch, ids:dict, limit:int=100):
-    """
-    get source events from alerts
-
-    :param client: client to use for the request
-    :param ids: dict of id sets
-    :param limit: limit on number of events to fetch
-    :return: list of source events
-    """
-    out = []
-    for index, id_list in ids.items():
-        res = client.esql.query(
-            query=f"""
-            FROM {index} METADATA _index, _id
-            | WHERE event.id in ({_list_to_string(id_list)})
-            | LIMIT {limit}
-            """,
-            format="json"
+class ESQLWrapper:
+    def __init__(self, es_url:str, api_key:str):
+        self.client = Elasticsearch(
+            hosts=[es_url],
+            api_key=api_key
         )
-        out.extend(res_to_dict(res))
-    return out
 
+    def get_alert_ids(self, index:str, options:QueryOptions):
+        """
+        get ids of alert sources during a time period
 
-def get_inverse_from_ids(client:Elasticsearch, ids:dict, date_start:str = "1970-01-01T01:00:00Z", date_end:str = datetime.datetime.now().isoformat(), limit:int = 100):
-    """
-    get events that did not trigger alerts within a time range
+        :param index: index pattern to search
+        :param options: options object for the query
+        :return: dict of id sets in form {<index>:<set of ids>}
+        """
+        if options.date_end == "":  # default to ending now
+            date_end = datetime.datetime.now(datetime.UTC).isoformat()
+        res = self.client.esql.query(query=f"""
+        FROM {index} 
+        | WHERE @timestamp > "{options.date_start}" AND @timestamp < "{options.date_end}"
+        | WHERE event.id != ""
+        | KEEP event.id, signal.ancestors.index
+        | LIMIT {options.limit}
+        """)
+        ids = {}
+        for event_id, index in res["values"]:
+            if index not in ids:
+                ids[index] = set()
+            ids[index].add(event_id)
+        return ids
 
-    :param limit: limit on number of events to fetch
-    :param client: client to use for the request
-    :param ids: dict of id sets
-    :param date_start: start time for the time range
-    :param date_end:  end time for the time range
-    :return: list of events
-    """
-    out = []
-    for index, id_list in ids.items():
-        res = client.esql.query(
-            query=f"""
-            FROM {index} METADATA _index, _id
-            | WHERE event.id not in ({_list_to_string(id_list)}) and @timestamp > "{date_start}" and @timestamp < "{date_end}"
-            | LIMIT {limit}
-            """
-        )
-        out.extend(res_to_dict(res))
-    return out
+    def get_inverse_from_ids(self, ids:dict, options:QueryOptions):
+        """
+        get events not in the ids dict
+
+        :param ids: dict of index:[ids]
+        :param options: options object for the query
+        :return: list of events
+        """
+        out = []
+        for index, id_list in ids.items():
+            res = self.client.esql.query(
+                query=f"""
+                FROM {index} METADATA _index, _id
+                | WHERE event.id not in ({_list_to_string(id_list)}) and @timestamp > "{options.date_start}" and @timestamp < "{options.date_end}"
+                | LIMIT {options.limit}
+                """
+            )
+            out.extend(res_to_dict(res))
+        return out
+
+    def get_from_ids(self, ids:dict, options:QueryOptions):
+        """
+        get events from their id
+
+        :param ids: dict of index:[ids]
+        :param options: options object for the query
+        :return: list of events
+        """
+        out = []
+        for index, id_list in ids.items():
+            res = self.client.esql.query(
+                query=f"""
+                FROM {index} METADATA _index, _id
+                | WHERE event.id in ({_list_to_string(id_list)})
+                | LIMIT {options.limit}
+                """,
+                format="json"
+            )
+            out.extend(res_to_dict(res))
+        return out
+
 
 
 
