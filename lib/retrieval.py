@@ -19,6 +19,18 @@ def _list_to_string(l):
         out += f"\"{item}\","
     return out[:-1] if len(out) >1 else ""
 
+def _list_to_string_no_quotes(l):
+    """
+    convert a list to a comma separated string of list items
+
+    :param l: list to convert to string
+    :return: comma separated string of each list item
+    """
+    out = ""
+    for item in l:
+        out += f"{item},"
+    return out[:-1] if len(out) >1 else ""
+
 class QueryOptions:
     """
     Options for ESQLWrapper Queries
@@ -27,19 +39,28 @@ class QueryOptions:
                  date_start:str = "1970-01-01T01:00:00Z",
                  date_end:str = datetime.datetime.now().isoformat(),
                  limit:int=100,
-                 whitelist:list=None
+                 blacklist:list=None
                  ):
         """
         :param date_start: start time for the time range
         :param date_end: end time for the time range
         :param limit: limit for events to fetch
         """
-        if whitelist is None:
-            whitelist = []
         self.date_start = date_start
         self.date_end = date_end
         self.limit = limit
-        self.whitelist = whitelist
+        self.blacklist = blacklist
+
+    def build_args(self):
+        out = ""
+        if self.blacklist is not None:
+            out += f"| DROP {self.blacklist}"
+        out += f"| LIMIT {self.limit}"
+        return out
+
+    def build_timerange(self):
+        return f'| WHERE @timestamp > "{self.date_start}" AND @timestamp < "{self.date_end}"'
+
 
 
 class ESQLWrapper:
@@ -61,7 +82,7 @@ class ESQLWrapper:
             date_end = datetime.datetime.now(datetime.UTC).isoformat()
         res = self.client.esql.query(query=f"""
         FROM {index} 
-        | WHERE @timestamp > "{options.date_start}" AND @timestamp < "{options.date_end}"
+        {options.build_timerange()}
         | WHERE event.id != ""
         | KEEP event.id, signal.ancestors.index
         | LIMIT {options.limit}
@@ -86,8 +107,9 @@ class ESQLWrapper:
             res = self.client.esql.query(
                 query=f"""
                 FROM {index} METADATA _index, _id
-                | WHERE event.id not in ({_list_to_string(id_list)}) and @timestamp > "{options.date_start}" and @timestamp < "{options.date_end}"
-                | LIMIT {options.limit}
+                {options.build_timerange()}
+                | WHERE event.id not in ({_list_to_string(id_list)})
+                {options.build_args()}
                 """
             )
             out.extend(res_to_dict(res))
@@ -107,7 +129,7 @@ class ESQLWrapper:
                 query=f"""
                 FROM {index} METADATA _index, _id
                 | WHERE event.id in ({_list_to_string(id_list)})
-                | LIMIT {options.limit}
+                {options.build_args()}
                 """,
                 format="json"
             )
