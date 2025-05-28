@@ -54,7 +54,7 @@ class QueryOptions:
     def build_args(self):
         out = ""
         if self.blacklist is not None:
-            out += f"| DROP {self.blacklist}"
+            out += f"| DROP {_list_to_string_no_quotes(self.blacklist)}"
         out += f"| LIMIT {self.limit}"
         return out
 

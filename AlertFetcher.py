@@ -88,7 +88,12 @@ if __name__ == "__main__":
     no_alert = args.no_alert
 
     apis = get_apis()
-    q_options = QueryOptions(date_start=args.start_date, date_end=args.end_date, limit=args.limit)
+    q_options = QueryOptions(
+        date_start=args.start_date,
+        date_end=args.end_date,
+        limit=args.limit,
+        blacklist=config["exclude"]
+    )
     if args.api == "ALL": # run for all
         for key, val in apis.items():
             client = ESQLWrapper(val["uri"], val["key"])
