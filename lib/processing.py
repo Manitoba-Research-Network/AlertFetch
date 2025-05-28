@@ -1,38 +1,20 @@
-import json
-
-with open("config.json","r") as f:
-    exclude = json.load(f)["exclude"]
-
-def clean_entry(entry):
-    """
-    remove fields from entry that are not wanted for training
-    :param entry: entry to clean
-    :return: returns the entry without the unwanted fields (note this function operates on the provided entry not a copy)
-    """
-    for ex in exclude:
-        opp = entry
-        for field in ex[:-1]:
-            if field not in entry:
-                entry = None
-                break
-            opp = entry[field]
-        if ex[-1] in opp and opp is not None:
-            opp.pop(ex[-1])
-    return entry
-
 def clean_entries(entries, api = None):
-    """
-    remove fields from each entry in a list
+    out = remove_null_fields(entries)
+    return extract_metadata(out, api)
 
-    :param api: api identifier to add to metadata
-    :param entries: list of entries to clean
-    :return: the cleaned list (NOTE: this function operates directly on the list members)
-    """
+def extract_metadata(entries, api = None):
     out = []
     for e in entries:
-        clean = {"meta":{"id": e["_id"], "idx": e["_index"]}} #!Because we are editing the entry directly with clean, we must do these lines seperatly
+        clean = {"meta": {"id": e["_id"], "idx": e["_index"]}, "entry": {**e}}
+        clean["entry"].pop("_id")
+        clean["entry"].pop("_index")
         if api is not None:
             clean["meta"]["api"] = api
-        clean["entry"] = clean_entry(e)
         out.append(clean)
+    return out
+
+def remove_null_fields(entries:list):
+    out = []
+    for e in entries: # this is O(k*n) but k << n so should generally still be fine
+        out.append({k:v for (k,v) in e.items() if v is not None})
     return out
