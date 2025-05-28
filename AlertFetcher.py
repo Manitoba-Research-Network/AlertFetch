@@ -6,7 +6,7 @@ import argparse
 
 import lib.output
 from lib.output import write_jsonl, write_jsonl_no_label
-from lib.processing import extract_metadata
+from lib.processing import clean_entries
 from lib.retrieval import ESQLWrapper, QueryOptions
 
 DEFAULT_INDEX_PAT = ".internal.alerts-security.alerts-default-*"
@@ -24,11 +24,11 @@ def main(client:ESQLWrapper, q_options:QueryOptions,index, out, api, no_alert = 
 
     # get and clean source events
     events = client.get_from_ids(ids, q_options)
-    cleaned = extract_metadata(events, api)
+    cleaned = clean_entries(events, api)
 
     # get and clean non source events
     eventsPass = client.get_inverse_from_ids(ids, q_options)
-    cleanedPass = extract_metadata(eventsPass, api)
+    cleanedPass = clean_entries(eventsPass, api)
 
     # output
     write_jsonl(out + f"{api}.jsonl", cleaned, cleanedPass)
