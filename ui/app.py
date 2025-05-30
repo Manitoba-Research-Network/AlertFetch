@@ -1,6 +1,9 @@
 import tkinter as tk
 
 from ui.api_selector import APISelector
+from ui.labeled_field import LabeledField
+
+DEFAULT_LIMIT = 100
 
 
 class App:
@@ -20,6 +23,10 @@ class App:
         # Left
         api_selector = APISelector(self.apis)
         api_selector.build(frame_left)
+
+        limit = tk.StringVar(value=str(100))
+        field_limit = LabeledField(frame_left,"Request Limit: ", limit)
+        field_limit.pack(padx=3, pady=3)
 
         button_execute = tk.Button(frame_left, text="Execute", command=lambda: print(api_selector.get_api()))
         button_execute.pack()
