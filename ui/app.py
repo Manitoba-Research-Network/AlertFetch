@@ -1,3 +1,4 @@
+import datetime
 import tkinter as tk
 
 from ui.api_selector import APISelector
@@ -7,6 +8,8 @@ from ui.labeled_field import LabeledField
 
 DEFAULT_LIMIT = 100
 DEFAULT_OUT_DIR = "./out"
+DEFAULT_END_DATE = str(datetime.date.today())
+DEFAULT_START_DATE = str(datetime.date.today() - datetime.timedelta(days=5))
 
 
 class App:
@@ -39,12 +42,12 @@ class App:
         button_execute.pack()
 
         # Right
-        start_date_var = tk.StringVar()# todo defaults
-        start_date = DateSelector(frame_right,"Start Date: ", start_date_var)
+        start_date_var = tk.StringVar()
+        start_date = DateSelector(frame_right,"Start Date: ", start_date_var, initial=DEFAULT_START_DATE)
         start_date.pack(padx=3, pady=3)
 
-        end_date_var = tk.StringVar()# todo defaults
-        end_date = DateSelector(frame_right,"End Date: ", end_date_var)
+        end_date_var = tk.StringVar()
+        end_date = DateSelector(frame_right,"End Date: ", end_date_var, initial=DEFAULT_END_DATE)
         end_date.pack(padx=3, pady=3)
 
         root.mainloop()
