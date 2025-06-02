@@ -1,6 +1,7 @@
 import tkinter as tk
 
 from ui.api_selector import APISelector
+from ui.date_selector import DateSelector
 from ui.file_selector import FileSelector
 from ui.labeled_field import LabeledField
 
@@ -18,7 +19,7 @@ class App:
         root.resizable(False, False)
 
         frame_left = tk.Frame(root, width=300, bg="skyblue")
-        frame_left.grid(row=0, column=0)
+        frame_left.grid(row=0, column=0, sticky="n")
         frame_right = tk.Frame(root, width=300, bg="green")
         frame_right.grid(row=0, column=1)
 
@@ -36,5 +37,14 @@ class App:
 
         button_execute = tk.Button(frame_left, text="Execute", command=lambda: print(api_selector.get_api()))
         button_execute.pack()
+
+        # Right
+        start_date_var = tk.StringVar()# todo defaults
+        start_date = DateSelector(frame_right,"Start Date: ", start_date_var)
+        start_date.pack(padx=3, pady=3)
+
+        end_date_var = tk.StringVar()# todo defaults
+        end_date = DateSelector(frame_right,"End Date: ", end_date_var)
+        end_date.pack(padx=3, pady=3)
 
         root.mainloop()
