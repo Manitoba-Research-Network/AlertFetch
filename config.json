@@ -1,11 +1,8 @@
 {
   "exclude": [
-    ["_index"],
-    ["_id"],
-    ["_source", "ecs"],
-    ["_source", "@timestamp"],
-    ["_source", "data_stream"],
-    ["_source", "elastic"],
-    ["_source", "agent"]
+    "data_stream.*",
+    "agent.*",
+    "ecs.*",
+    "cloud.*"
   ]
 }
