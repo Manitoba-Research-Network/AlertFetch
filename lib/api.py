@@ -4,12 +4,26 @@ from lib.retrieval import ESQLWrapper, QueryOptions
 
 
 class Runnable(ABC):
+    """
+    abstract class for running queries.
+    """
     @abstractmethod
     def run(self, wrapper:ESQLWrapper, api_id:str):
+        """
+        run this runnable
+        :param wrapper: wrapper to user for running
+        :param api_id: api to run with
+        """
         pass
 
 class ApiRunner:
+    """
+    class for handling api calls and selection
+    """
     def __init__(self,apis:dict):
+        """
+        :param apis: dict of api credentials keyed by api id
+        """
         self.api_creds = apis
         self.apis = {}
 

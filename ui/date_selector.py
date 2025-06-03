@@ -6,6 +6,12 @@ import tkcalendar
 
 class DateSelector(tk.Frame):
     def __init__(self, master, label_text:str, value:StringVar, initial:str = str(datetime.date.today())):
+        """
+        :param master: parent widget
+        :param label_text: label for the selector
+        :param value: value output Var
+        :param initial: initial value
+        """
         tk.Frame.__init__(self, master)
         self.value = value
         self.date_value = StringVar(value=initial)
@@ -24,7 +30,7 @@ class DateSelector(tk.Frame):
         )
         calendar.bind("<<CalendarSelected>>", self._on_change)
         calendar.grid(row=1, column=0, columnspan=2)
-        #todo, time selector
+        #todo, time selector see #8
 
         self._on_change(None)
 

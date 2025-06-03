@@ -3,7 +3,15 @@ from tkinter import filedialog
 
 
 class FileSelector(tk.Frame):
+    """
+    Selector for an output directory
+    """
     def __init__(self, master, label_text:str, path: tk.StringVar):
+        """
+        :param master: parent widget
+        :param label_text: label for the selector
+        :param path: path output Variable
+        """
         tk.Frame.__init__(self, master)
         self.path = path
 

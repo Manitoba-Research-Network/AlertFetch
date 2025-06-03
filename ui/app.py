@@ -32,6 +32,9 @@ class App:
 
 
     def start(self):
+        """
+        run the main loop of the app
+        """
         self.root.title("AlertFetch")
         self.root.resizable(False, False)
 
@@ -40,7 +43,7 @@ class App:
         frame_right = tk.Frame(self.root, width=300, bg="green")
         frame_right.grid(row=0, column=1)
 
-        # Left
+        # ====Left====
         self.api_selector.build(frame_left)
 
         self.limit.set(str(DEFAULT_LIMIT))
@@ -53,24 +56,27 @@ class App:
 
         button_execute = tk.Button(frame_left, text="Execute", command=self._on_button)
         button_execute.pack()
+        self.exec_state.trace_add( # calback for button to be disabled while queries are executing
+            "write",
+            lambda x, idx, mode: button_execute.configure(state=tk.DISABLED if self.exec_state.get() else tk.NORMAL))
 
-        self.exec_state.trace_add("write",lambda x, idx, mode: button_execute.configure(state=tk.DISABLED if self.exec_state.get() else tk.NORMAL))
-
-        # Right
+        # ====Right====
+        # Calendars
         start_date = DateSelector(frame_right,"Start Date: ", self.start_date_var, initial=DEFAULT_START_DATE)
         start_date.pack(padx=3, pady=3)
 
         end_date = DateSelector(frame_right,"End Date: ", self.end_date_var, initial=DEFAULT_END_DATE)
         end_date.pack(padx=3, pady=3)
 
+        # ====RUN LOOP====
         self.root.mainloop()
 
-    def _on_button(self):
+    def _on_button(self): # button event handler
         options = QueryOptions(self.start_date_var.get(), self.end_date_var.get(), int(self.limit.get()), self.blacklist)
         main_runner = MainRunner(options, self.out_path.get())
 
         api = self.api_selector.get_api()
-        if api != "ALL":
+        if api != "ALL": # check if we are running for all apis
             cb = lambda: self.runner.run(api, main_runner)
             lib.output.combine_jsonl(self.out_path.get())
         else:

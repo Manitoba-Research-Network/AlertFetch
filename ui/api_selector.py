@@ -4,13 +4,25 @@ from tkinter import ttk
 
 
 class APISelector:
+    """
+    UI for selecting api(s) to query.
+    """
     def __init__(self, apis):
+        """
+        :param apis: list of api ids
+        """
         self.apis = apis
         self.selected_api = StringVar()
         self.run_all = IntVar()
         self.dropdown:ttk.OptionMenu = None
 
     def build(self, parent):
+        """
+        builds the ui component
+
+        :param parent: parent widget
+        :return:
+        """
         frame = Frame(parent)
         frame.pack(fill="x", padx=3, pady=3, expand=True)
 
@@ -40,6 +52,10 @@ class APISelector:
         self.dropdown.config(state=tk.DISABLED if self.run_all.get() else tk.NORMAL)
 
     def get_api(self):
+        """
+        get the selected api
+        :return: string id of the selected api ('ALL' if all selected)
+        """
         if self.run_all.get():
             return "ALL"
         else:
