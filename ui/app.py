@@ -38,9 +38,9 @@ class App:
         self.root.title("AlertFetch")
         self.root.resizable(False, False)
 
-        frame_left = tk.Frame(self.root, width=300, bg="skyblue")
+        frame_left = tk.Frame(self.root, width=300)
         frame_left.grid(row=0, column=0, sticky="n")
-        frame_right = tk.Frame(self.root, width=300, bg="green")
+        frame_right = tk.Frame(self.root, width=300)
         frame_right.grid(row=0, column=1)
 
         # ====Left====
@@ -52,7 +52,7 @@ class App:
 
         self.out_path.set(DEFAULT_OUT_DIR)
         out_file_select = FileSelector(frame_left, "Output Dir: ", self.out_path)
-        out_file_select.pack(padx=3, pady=3)
+        out_file_select.pack(padx=3, pady=3, anchor="w")
 
         button_execute = tk.Button(frame_left, text="Execute", command=self._on_button)
         button_execute.pack()
