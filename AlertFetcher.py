@@ -5,6 +5,7 @@ import datetime
 import argparse
 
 import lib.output
+from lib.api import Runnable
 from lib.output import write_jsonl, write_jsonl_no_label
 from lib.processing import clean_entries
 from lib.retrieval import ESQLWrapper, QueryOptions
@@ -38,6 +39,16 @@ def main(client:ESQLWrapper, q_options:QueryOptions,index, out, api, no_alert = 
 def get_apis() -> dict:
     with open("apis.json") as f:
         return json.loads(f.read())
+
+class MainRunner(Runnable):
+    def __init__(self, q_options:QueryOptions,out, index = DEFAULT_INDEX_PAT, no_alert = ""):
+        self.options = q_options
+        self.index = index
+        self.no_alert = no_alert
+        self.out = out
+
+    def run(self, wrapper: ESQLWrapper, api_id):
+        main(wrapper, self.options, self.index, self.out, api_id, self.no_alert)
 
 
 if __name__ == "__main__":

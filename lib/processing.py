@@ -1,3 +1,5 @@
+import json
+
 def clean_entries(entries, api = None):
     out = remove_null_fields(entries)
     return extract_metadata(out, api)
@@ -18,3 +20,7 @@ def remove_null_fields(entries:list):
     for e in entries: # this is O(k*n) but k << n so should generally still be fine
         out.append({k:v for (k,v) in e.items() if v is not None})
     return out
+
+def get_blacklist():
+    with open("config.json") as f:
+        return json.load(f)["exclude"]
