@@ -48,10 +48,11 @@ class MainRunner(Runnable):
         self.index = index
         self.no_alert = no_alert
         self.out = out
+        self.alert_ids = None
 
     def run(self, wrapper: ESQLWrapper, api_id):
         # get alert source ids
-        ids = wrapper.get_alert_ids(self.index, self.options)
+        ids = self._get_ids(wrapper)
 
         # get and clean source events
         events = wrapper.get_from_ids(ids, self.options)
@@ -65,6 +66,13 @@ class MainRunner(Runnable):
         write_jsonl(self.out + f"{api_id}.jsonl", cleaned, cleanedPass)
         if self.no_alert != "": # output separate non-alerting events if path specified
             write_jsonl_no_label(self.no_alert+ f"no-alert_{api_id}.jsonl", cleanedPass)
+
+        self.alert_ids = None # reset after full request
+
+    def _get_ids(self, wrapper):
+        if self.alert_ids is None:
+            self.alert_ids = wrapper.get_alert_ids(self.index, self.options)
+        return self.alert_ids
 
 
 if __name__ == "__main__":
