@@ -44,7 +44,11 @@ class ApiRunner:
         :param runnable: runnable to run
         """
         for api_id in self.api_creds.keys():
-            self.run(api_id, runnable)
+            try:
+                self.run(api_id, runnable)
+            except Exception as e:
+                print(f"{api_id} failed to run")
+                print(e)
 
     def get_apis(self)->list:
         """

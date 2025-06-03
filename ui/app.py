@@ -1,4 +1,5 @@
 import datetime
+import threading
 import tkinter as tk
 
 import lib.output
@@ -27,6 +28,8 @@ class App:
         self.end_date_var = tk.StringVar()
         self.api_selector = APISelector(self.apis)
         self.blacklist = blacklist
+        self.exec_state = tk.BooleanVar(value=False)
+
 
     def start(self):
         self.root.title("AlertFetch")
@@ -51,6 +54,8 @@ class App:
         button_execute = tk.Button(frame_left, text="Execute", command=self._on_button)
         button_execute.pack()
 
+        self.exec_state.trace_add("write",lambda x, idx, mode: button_execute.configure(state=tk.DISABLED if self.exec_state.get() else tk.NORMAL))
+
         # Right
         start_date = DateSelector(frame_right,"Start Date: ", self.start_date_var, initial=DEFAULT_START_DATE)
         start_date.pack(padx=3, pady=3)
@@ -66,8 +71,17 @@ class App:
 
         api = self.api_selector.get_api()
         if api != "ALL":
-            self.runner.run(api, main_runner)
+            cb = lambda: self.runner.run(api, main_runner)
             lib.output.combine_jsonl(self.out_path.get())
         else:
-            self.runner.run_all(main_runner)
+            cb = lambda: self.runner.run_all(main_runner)
+
+        threading.Thread(target=self._run_non_blocking, args=(cb,)).start() # this is probably a memory leak
+
+    def _run_non_blocking(self, cb):
+        self.exec_state.set(True) # this is the only place where these are written to so no lock should be needed
+        cb()
+        self.exec_state.set(False)
+
+
 
