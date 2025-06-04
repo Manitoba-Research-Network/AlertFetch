@@ -1,12 +1,14 @@
 import datetime
 import threading
 import tkinter as tk
+from tkinter import simpledialog
 
 import lib.output
 from AlertFetcher import MainRunner
 from lib.api import ApiRunner
 from lib.retrieval import QueryOptions
 from ui.api_selector import APISelector
+from ui.confirmation import ConfirmationDialog
 from ui.date_selector import DateSelector
 from ui.file_selector import FileSelector
 from ui.labeled_field import LabeledField
@@ -72,22 +74,34 @@ class App:
         self.root.mainloop()
 
     def _on_button(self): # button event handler
+        threading.Thread(target=self._confirm_then_run()).start() # this is probably a memory leak
+
+    def _confirm_then_run(self):
+        self.exec_state.set(True) # this is the only place where these are written to so no lock should be needed
+
         options = QueryOptions(self.start_date_var.get(), self.end_date_var.get(), int(self.limit.get()), self.blacklist)
         main_runner = MainRunner(options, self.out_path.get())
-
         api = self.api_selector.get_api()
-        if api != "ALL": # check if we are running for all apis
-            cb = lambda: self.runner.run(api, main_runner)
-            lib.output.combine_jsonl(self.out_path.get())
+
+        ## RUN CONFIRMATION
+        if api != "ALL":
+            confirmation = self.runner.confirm(api, main_runner)
+            pass # count for all
         else:
-            cb = lambda: self.runner.run_all(main_runner)
+            confirmation = self.runner.confirm_all(main_runner)
+            pass # count for one
 
-        threading.Thread(target=self._run_non_blocking, args=(cb,)).start() # this is probably a memory leak
+        confirmed = tk.BooleanVar()
+        ConfirmationDialog(self.root, "Confirm Query", confirmation, confirmed)
 
-    def _run_non_blocking(self, cb):
-        self.exec_state.set(True) # this is the only place where these are written to so no lock should be needed
-        cb()
+        ## RUN FETCH
+        if confirmed.get(): # exit early if we fail to confirm
+            if api != "ALL": # check if we are running for all apis
+                self.runner.run(api, main_runner)
+            else:
+                self.runner.run_all(main_runner)
+                lib.output.combine_jsonl(self.out_path.get())
+
         self.exec_state.set(False)
-
 
 

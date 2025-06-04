@@ -3,6 +3,7 @@ import json
 
 import datetime
 import argparse
+from warnings import deprecated
 
 import lib.output
 from lib.api import Runnable
@@ -17,6 +18,7 @@ DEFAULT_END_DATE = datetime.datetime.now(datetime.UTC).isoformat()
 with open("config.json", "r") as f:
     config = json.load(f)
 
+@deprecated("Use MainRunner instead")
 def main(client:ESQLWrapper, q_options:QueryOptions,index, out, api, no_alert = ""):
 
 
@@ -48,7 +50,36 @@ class MainRunner(Runnable):
         self.out = out
 
     def run(self, wrapper: ESQLWrapper, api_id):
-        main(wrapper, self.options, self.index, self.out, api_id, self.no_alert)
+        # get alert source ids
+        ids = self._get_ids(wrapper)
+
+        # get and clean source events
+        events = wrapper.get_from_ids(ids, self.options)
+        cleaned = clean_entries(events, api_id)
+
+        # get and clean non source events
+        eventsPass = wrapper.get_inverse_from_ids(ids, self.options)
+        cleanedPass = clean_entries(eventsPass, api_id)
+
+        # output
+        write_jsonl(self.out + f"{api_id}.jsonl", cleaned, cleanedPass)
+        if self.no_alert != "": # output separate non-alerting events if path specified
+            write_jsonl_no_label(self.no_alert+ f"no-alert_{api_id}.jsonl", cleanedPass)
+
+
+    def _get_ids(self, wrapper):
+        return wrapper.get_alert_ids(self.index, self.options)
+
+    def confirm(self, wrapper:ESQLWrapper, api_id:str)->int:
+        ids = self._get_ids(wrapper)
+        total = 0
+        # count events
+        total += wrapper.count_from_ids(ids, self.options)
+
+        # count inverted events
+        total += wrapper.count_inverse_from_ids(ids, self.options)
+
+        return total
 
 
 if __name__ == "__main__":
