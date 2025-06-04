@@ -84,21 +84,23 @@ class App:
         api = self.api_selector.get_api()
 
         ## RUN CONFIRMATION
-        if api != "ALL": # todo
+        if api != "ALL":
+            confirmation = self.runner.confirm(api, main_runner)
             pass # count for all
         else:
+            confirmation = self.runner.confirm_all(main_runner)
             pass # count for one
 
         confirmed = tk.BooleanVar()
-        ConfirmationDialog(self.root, "Confirm Query", "A query will fetch: [todo]", confirmed)
+        ConfirmationDialog(self.root, "Confirm Query", confirmation, confirmed)
 
         ## RUN FETCH
         if confirmed.get(): # exit early if we fail to confirm
             if api != "ALL": # check if we are running for all apis
                 self.runner.run(api, main_runner)
-                lib.output.combine_jsonl(self.out_path.get())
             else:
                 self.runner.run_all(main_runner)
+                lib.output.combine_jsonl(self.out_path.get())
 
         self.exec_state.set(False)
 

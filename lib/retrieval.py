@@ -136,6 +136,35 @@ class ESQLWrapper:
             out.extend(res_to_dict(res))
         return out
 
+    def count_from_ids(self, ids:dict, options:QueryOptions)->int:
+        out = 0
+        for index, id_list in ids.items():
+            res = self.client.esql.query(
+                query=f"""
+                FROM {index} METADATA _index, _id
+                | WHERE event.id in ({_list_to_string(id_list)})
+                {options.build_args()}
+                | STATS COUNT(*)
+                """
+            )
+            out += res['values'][0][0]
+        return out
+
+    def count_inverse_from_ids(self, ids:dict, options:QueryOptions)->int:
+        out = 0
+        for index, id_list in ids.items():
+            res = self.client.esql.query(
+                query=f"""
+                FROM {index} METADATA _index, _id
+                {options.build_timerange()}
+                | WHERE event.id not in ({_list_to_string(id_list)})
+                {options.build_args()}
+                | STATS COUNT(*)
+                """
+            )
+            out += res['values'][0][0]
+        return out
+
 
 
 

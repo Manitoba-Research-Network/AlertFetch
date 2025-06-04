@@ -16,6 +16,16 @@ class Runnable(ABC):
         """
         pass
 
+    @abstractmethod
+    def confirm(self, wrapper:ESQLWrapper, api_id:str)->int:
+        """
+        get confirmation message for the Run operation
+        :param wrapper: wrapper to use for running
+        :param api_id: api to run with
+        :return: count of records to be fetched
+        """
+        pass
+
 class ApiRunner:
     """
     class for handling api calls and selection
@@ -63,6 +73,23 @@ class ApiRunner:
             except Exception as e:
                 print(f"{api_id} failed to run")
                 print(e)
+
+    def confirm(self, api_id:str, runnable:Runnable)->str:
+        return f"Are you sure you want to fetch {self._confirm(api_id, runnable)} events?"
+
+    def _confirm(self, api_id:str, runnable:Runnable) -> int:
+        wrapper = self.get_esql_wrapper(api_id)
+        return runnable.confirm(wrapper, api_id)
+
+    def confirm_all(self, runnable:Runnable) -> str:
+        total = 0
+        for api_id in self.api_creds.keys():
+            try:
+                total += self._confirm(api_id, runnable)
+            except Exception as e:
+                print(f"{api_id} failed to run count")
+                print(e)
+        return f"Are you sure you want to fetch {total} events?"
 
     def get_apis(self)->list:
         """
