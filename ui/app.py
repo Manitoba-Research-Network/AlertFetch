@@ -1,6 +1,7 @@
 import datetime
 import threading
 import tkinter as tk
+from tkinter import ttk
 from tkinter import simpledialog
 
 import lib.output
@@ -63,15 +64,28 @@ class App:
             lambda x, idx, mode: button_execute.configure(state=tk.DISABLED if self.exec_state.get() else tk.NORMAL))
 
         # ====Right====
-        # Calendars
-        start_date = DateSelector(frame_right,"Start Date: ", self.start_date_var, initial=DEFAULT_START_DATE)
-        start_date.pack(padx=3, pady=3)
+        notebook = ttk.Notebook(frame_right)
+        notebook.pack(fill="both", expand=True)
 
-        end_date = DateSelector(frame_right,"End Date: ", self.end_date_var, initial=DEFAULT_END_DATE)
-        end_date.pack(padx=3, pady=3)
+        # Calendars
+        frame_calendar = self._create_calendar_frame(frame_right)
+
+        notebook.add(frame_calendar, text="Date Range")
 
         # ====RUN LOOP====
         self.root.mainloop()
+
+    def _create_calendar_frame(self, parent):
+        frame = tk.Frame(parent)
+
+        start_date = DateSelector(frame,"Start Date: ", self.start_date_var, initial=DEFAULT_START_DATE)
+        start_date.pack(padx=3, pady=3)
+
+        end_date = DateSelector(frame,"End Date: ", self.end_date_var, initial=DEFAULT_END_DATE)
+        end_date.pack(padx=3, pady=3)
+
+
+        return frame
 
     def _on_button(self): # button event handler
         threading.Thread(target=self._confirm_then_run()).start() # this is probably a memory leak
