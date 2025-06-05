@@ -13,6 +13,7 @@ from ui.confirmation import ConfirmationDialog
 from ui.date_selector import DateSelector
 from ui.file_selector import FileSelector
 from ui.labeled_field import LabeledField
+from ui.mode_selector import ModeSelector
 
 DEFAULT_LIMIT = 100
 DEFAULT_OUT_DIR = "./out/"
@@ -30,6 +31,7 @@ class App:
         self.start_date_var = tk.StringVar()
         self.end_date_var = tk.StringVar()
         self.api_selector = APISelector(self.apis)
+        self.mode_selector = None
         self.blacklist = blacklist
         self.exec_state = tk.BooleanVar(value=False)
 
@@ -48,6 +50,9 @@ class App:
 
         # ====Left====
         self.api_selector.build(frame_left)
+
+        self.mode_selector = ModeSelector(frame_left)
+        self.mode_selector.pack(padx=3, pady=3, anchor="w")
 
         self.limit.set(str(DEFAULT_LIMIT))
         field_limit = LabeledField(frame_left,"Request Limit: ", self.limit)
