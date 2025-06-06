@@ -14,6 +14,7 @@ from ui.date_selector import DateSelector
 from ui.file_selector import FileSelector
 from ui.labeled_field import LabeledSpinbox, LabeledEntry
 from ui.mode_selector import ModeSelector
+from ui.timeframe_selector import TimeframeSelector
 
 DEFAULT_LIMIT = 100
 DEFAULT_OUT_DIR = "./out/"
@@ -36,6 +37,9 @@ class App:
         self.id_var = tk.StringVar()
         self.blacklist = blacklist
         self.exec_state = tk.BooleanVar(value=False)
+
+        self.ctx_time = tk.StringVar()
+        self.group_enabled = tk.BooleanVar(value=False)
 
 
     def start(self):
@@ -79,8 +83,10 @@ class App:
 
         # Calendars
         frame_calendar = self._create_calendar_frame(frame_right)
+        frame_grouping = self._create_grouping_frame(frame_right)
 
         notebook.add(frame_calendar, text="Date Range")
+        notebook.add(frame_grouping, text="Grouping")
 
         # ====INIT STATE====
         self._on_mode_select(self.mode_selector.get_value())
@@ -97,6 +103,16 @@ class App:
         end_date = DateSelector(frame,"End Date: ", self.end_date_var, initial=DEFAULT_END_DATE)
         end_date.pack(padx=3, pady=3)
 
+
+        return frame
+
+    def _create_grouping_frame(self, parent):
+        frame = tk.Frame(parent)
+        ctx_window = TimeframeSelector(frame, self.ctx_time, "Context Timeframe: ")
+        ctx_window.pack(padx=3, pady=3)
+
+        group_checkbox = tk.Checkbutton(frame, variable=self.group_enabled, text="Enable Grouping")
+        group_checkbox.pack(padx=3, pady=3, anchor="w")
 
         return frame
 

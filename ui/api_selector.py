@@ -63,9 +63,15 @@ class APISelector:
             return self.selected_api.get()
 
     def enable_multi(self):
+        """
+        enable multi api query checkbox
+        """
         self.checkbox.config(state=tk.NORMAL)
 
     def disable_multi(self):
+        """
+        disable multi api query checkbox
+        """
         self.checkbox.deselect()
         self._on_checkbox_change() # this event should be triggered, bit weird
         self.checkbox.config(state=tk.DISABLED)

@@ -1,0 +1,32 @@
+import tkinter as tk
+from tkinter import ttk
+
+from ui.labeled_field import LabeledSpinbox
+
+time_lut = {
+    "min":60,
+    "sec":1,
+    "hrs":3600
+}
+
+class TimeframeSelector(tk.Frame):
+    def __init__(self, parent, out: tk.StringVar, label_text: str):
+        tk.Frame.__init__(self, parent)
+        self.out = out
+
+        self.spin_var = tk.StringVar()
+        spin = LabeledSpinbox(self, label_text, self.spin_var)
+        spin.grid(column=0, row=0)
+
+        self.time_var = tk.StringVar()
+        option = ttk.OptionMenu(self, self.time_var, list(time_lut.keys())[0], *time_lut.keys())
+        option.grid(column=1, row=0)
+        option.config(width=10)
+
+        self.spin_var.trace_add("write", self._on_change)
+        self.time_var.trace_add("write", self._on_change)
+
+    def _on_change(self, *args):
+        self.out.set(str(
+            time_lut[self.time_var.get()] * int(self.spin_var.get())
+        ))
