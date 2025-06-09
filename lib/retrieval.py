@@ -1,11 +1,25 @@
-import os
 
 from elasticsearch import Elasticsearch
-import toml
 import datetime
 
 from lib.esql import res_to_dict
-from elasticsearch.dsl import Search
+
+def flatten_get_response(res):
+    inner = res["_source"]
+    inner["_id"] = res["_id"]
+    inner["_index"] = res["_index"]
+    return _flatten_recurse_helper(inner)
+
+def _flatten_recurse_helper(inner, prefix=""):
+        out = {}
+        for k, v in inner.items():
+            if isinstance(v, dict):
+                out.update(_flatten_recurse_helper(v, prefix=f"{prefix}{k}."))
+            else:
+                out[f"{prefix}{k}"] = v
+        return out
+
+
 
 
 def _list_to_string(l):
@@ -179,7 +193,7 @@ class ESQLWrapper:
             id=idd
         )
 
-        return event
+        return flatten_get_response(event)
 
 
 
