@@ -8,6 +8,7 @@ import lib.output
 from AlertFetcher import MainRunner
 from lib.api import ApiRunner
 from lib.retrieval import QueryOptions
+from lib.runners import GroupingRunner
 from ui.api_selector import APISelector
 from ui.confirmation import ConfirmationDialog
 from ui.date_selector import DateSelector
@@ -35,6 +36,8 @@ class App:
         self.mode_selector = None
         self.id_input:LabeledEntry|None = None
         self.id_var = tk.StringVar()
+        self.index_input:LabeledEntry|None = None
+        self.index_var = tk.StringVar()
         self.blacklist = blacklist
         self.exec_state = tk.BooleanVar(value=False)
 
@@ -62,6 +65,8 @@ class App:
 
         self.id_input = LabeledEntry(frame_left,"Event ID: ", self.id_var)
         self.id_input.pack(padx=3, pady=3, anchor="w")
+        self.index_input = LabeledEntry(frame_left,"Index: ", self.index_var)
+        self.index_input.pack(padx=3, pady=3, anchor="w")
 
         self.limit.set(str(DEFAULT_LIMIT))
         field_limit = LabeledSpinbox(frame_left, "Request Limit: ", self.limit)
@@ -120,9 +125,11 @@ class App:
         match mode:
             case "single":
                 self.id_input.set_enabled(True)
+                self.index_input.set_enabled(True)
                 self.api_selector.disable_multi()
             case "multi":
                 self.id_input.set_enabled(False)
+                self.index_input.set_enabled(False)
                 self.api_selector.enable_multi()
 
     def _on_button(self): # button event handler
@@ -132,7 +139,12 @@ class App:
         self.exec_state.set(True) # this is the only place where these are written to so no lock should be needed
 
         options = QueryOptions(self.start_date_var.get(), self.end_date_var.get(), int(self.limit.get()), self.blacklist)
-        main_runner = MainRunner(options, self.out_path.get())
+
+        if self.group_enabled.get():
+            main_runner = GroupingRunner(options, self.out_path.get(), self.id_var.get(), index=self.index_var.get()) # todo separate single and multi support
+        else:
+            main_runner = MainRunner(options, self.out_path.get())
+
         api = self.api_selector.get_api()
 
         ## RUN CONFIRMATION

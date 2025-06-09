@@ -5,6 +5,7 @@ import toml
 import datetime
 
 from lib.esql import res_to_dict
+from elasticsearch.dsl import Search
 
 
 def _list_to_string(l):
@@ -164,6 +165,21 @@ class ESQLWrapper:
             )
             out += res['values'][0][0]
         return out
+
+    def get_event_by_id(self, idd, index:str):
+        """
+        get a single event by _id
+
+        :param index: index to query
+        :param idd: id of the event to get
+        :return: the event object
+        """
+        event = self.client.get(
+            index=index,
+            id=idd
+        )
+
+        return event
 
 
 
