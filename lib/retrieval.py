@@ -19,6 +19,14 @@ def _flatten_recurse_helper(inner, prefix=""):
                 out[f"{prefix}{k}"] = v
         return out
 
+def _get_time_around(time:str, delta:int)-> (str,str):
+    date = datetime.datetime.fromisoformat(time)
+    timedelta = datetime.timedelta(seconds=delta)
+
+    return (date - timedelta).isoformat(), (date + timedelta).isoformat()
+
+def _fields_to_equality(fields:dict):
+    return [f'{k}=="{v}"' for k,v in fields.items()]
 
 
 
@@ -76,6 +84,19 @@ class QueryOptions:
     def build_timerange(self):
         return f'| WHERE @timestamp > "{self.date_start}" AND @timestamp < "{self.date_end}"'
 
+
+def _ctx_query(fields:dict, ctx_window:int, timestamp:str, index:str)->str:
+    start, end = _get_time_around(timestamp, ctx_window)
+
+    field_cond = ""
+    for e in _fields_to_equality(fields):
+        field_cond += f"| WHERE {e}\n"
+
+    return f"""
+    FROM {index} METADATA _id, _index
+    | WHERE @timestamp > "{start}" AND @timestamp < "{end}"
+    {field_cond}
+    """
 
 
 class ESQLWrapper:
@@ -194,6 +215,36 @@ class ESQLWrapper:
         )
 
         return flatten_get_response(event)
+
+    def count_ctx(self, fields:dict, ctx_window:int, timestamp:str, index:str)->int:
+        """
+        count the number of events with a certain context
+        :param fields: fields and values to match
+        :param ctx_window: time around timestamp to search
+        :param timestamp: timestamp to search around
+        :param index: index to query
+        :return: number of events in context
+        """
+        res = self.client.esql.query(
+            query=_ctx_query(fields, ctx_window, timestamp, index) + "|STATS COUNT(*)"
+        )
+        return res['values'][0][0]
+
+    def get_ctx(self, fields:dict, ctx_window:int, timestamp:str, index:str, options:QueryOptions):
+        """
+        get events in a context window
+        :param fields: fields and values to match
+        :param ctx_window: time around timestamp to search
+        :param timestamp: timestamp to search around
+        :param index: index to query
+        :param options: options object for the query
+        :return: list of events in context
+        """
+        res = self.client.esql.query(
+            query=_ctx_query(fields, ctx_window, timestamp, index) + f"|LIMIT {options.limit}"
+        )
+        return res_to_dict(res)
+
 
 
 
