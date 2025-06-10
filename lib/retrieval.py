@@ -1,10 +1,58 @@
-import os
 
 from elasticsearch import Elasticsearch
-import toml
 import datetime
 
 from lib.esql import res_to_dict
+
+def _flatten_get_response(res):
+    """
+    flattens a dict so it is only 1 layer deep, by making field '.' seperated
+
+    :param res: dict to flatten
+    :return: flattened dict
+    """
+    inner = res["_source"] # we only care about the
+    inner["_id"] = res["_id"]
+    inner["_index"] = res["_index"]
+    return _flatten_recurse_helper(inner)
+
+def _flatten_recurse_helper(inner, prefix=""):
+    """
+    helper function to flatten a dict recursively
+
+    :param inner: inner dict
+    :param prefix: prefix string
+    :return: flattened dict
+    """
+    out = {}
+    for k, v in inner.items():
+        if isinstance(v, dict):
+            out.update(_flatten_recurse_helper(v, prefix=f"{prefix}{k}."))
+        else:
+            out[f"{prefix}{k}"] = v
+    return out
+
+def _get_time_around(time:str, delta:int)-> (str,str):
+    """
+    get a time range around a specified time
+
+    :param time: time to get around
+    :param delta: difference around the given time
+    :return: tuple of (start, end)
+    """
+    date = datetime.datetime.fromisoformat(time)
+    timedelta = datetime.timedelta(seconds=delta)
+
+    return (date - timedelta).isoformat(), (date + timedelta).isoformat()
+
+def _fields_to_equality(fields:dict):
+    """
+    convert fields to equality strings
+    :param fields: dict of key values to equal
+    :return: list of equality strings
+    """
+    return [f'{k}=="{v}"' for k,v in fields.items()]
+
 
 
 def _list_to_string(l):
@@ -61,6 +109,27 @@ class QueryOptions:
     def build_timerange(self):
         return f'| WHERE @timestamp > "{self.date_start}" AND @timestamp < "{self.date_end}"'
 
+
+def _ctx_query(fields:dict, ctx_window:int, timestamp:str, index:str)->str:
+    """
+    get the query for a event group context
+    :param fields: fields to match
+    :param ctx_window: context time delta
+    :param timestamp: time to get around
+    :param index: index to pull from
+    :return: string query
+    """
+    start, end = _get_time_around(timestamp, ctx_window)
+
+    field_cond = ""
+    for e in _fields_to_equality(fields):
+        field_cond += f"| WHERE {e}\n"
+
+    return f"""
+    FROM {index} METADATA _id, _index
+    | WHERE @timestamp > "{start}" AND @timestamp < "{end}"
+    {field_cond}
+    """
 
 
 class ESQLWrapper:
@@ -164,6 +233,51 @@ class ESQLWrapper:
             )
             out += res['values'][0][0]
         return out
+
+    def get_event_by_id(self, idd, index:str):
+        """
+        get a single event by _id
+
+        :param index: index to query
+        :param idd: id of the event to get
+        :return: the event object
+        """
+        event = self.client.get(
+            index=index,
+            id=idd
+        )
+
+        return _flatten_get_response(event)
+
+    def count_ctx(self, fields:dict, ctx_window:int, timestamp:str, index:str)->int:
+        """
+        count the number of events with a certain context
+        :param fields: fields and values to match
+        :param ctx_window: time around timestamp to search
+        :param timestamp: timestamp to search around
+        :param index: index to query
+        :return: number of events in context
+        """
+        res = self.client.esql.query(
+            query=_ctx_query(fields, ctx_window, timestamp, index) + "|STATS COUNT(*)"
+        )
+        return res['values'][0][0]
+
+    def get_ctx(self, fields:dict, ctx_window:int, timestamp:str, index:str, options:QueryOptions):
+        """
+        get events in a context window
+        :param fields: fields and values to match
+        :param ctx_window: time around timestamp to search
+        :param timestamp: timestamp to search around
+        :param index: index to query
+        :param options: options object for the query
+        :return: list of events in context
+        """
+        res = self.client.esql.query(
+            query=_ctx_query(fields, ctx_window, timestamp, index) + f"|LIMIT {options.limit}"
+        )
+        return res_to_dict(res)
+
 
 
 
