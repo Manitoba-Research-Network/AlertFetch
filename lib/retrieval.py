@@ -4,28 +4,53 @@ import datetime
 
 from lib.esql import res_to_dict
 
-def flatten_get_response(res):
-    inner = res["_source"]
+def _flatten_get_response(res):
+    """
+    flattens a dict so it is only 1 layer deep, by making field '.' seperated
+
+    :param res: dict to flatten
+    :return: flattened dict
+    """
+    inner = res["_source"] # we only care about the
     inner["_id"] = res["_id"]
     inner["_index"] = res["_index"]
     return _flatten_recurse_helper(inner)
 
 def _flatten_recurse_helper(inner, prefix=""):
-        out = {}
-        for k, v in inner.items():
-            if isinstance(v, dict):
-                out.update(_flatten_recurse_helper(v, prefix=f"{prefix}{k}."))
-            else:
-                out[f"{prefix}{k}"] = v
-        return out
+    """
+    helper function to flatten a dict recursively
+
+    :param inner: inner dict
+    :param prefix: prefix string
+    :return: flattened dict
+    """
+    out = {}
+    for k, v in inner.items():
+        if isinstance(v, dict):
+            out.update(_flatten_recurse_helper(v, prefix=f"{prefix}{k}."))
+        else:
+            out[f"{prefix}{k}"] = v
+    return out
 
 def _get_time_around(time:str, delta:int)-> (str,str):
+    """
+    get a time range around a specified time
+
+    :param time: time to get around
+    :param delta: difference around the given time
+    :return: tuple of (start, end)
+    """
     date = datetime.datetime.fromisoformat(time)
     timedelta = datetime.timedelta(seconds=delta)
 
     return (date - timedelta).isoformat(), (date + timedelta).isoformat()
 
 def _fields_to_equality(fields:dict):
+    """
+    convert fields to equality strings
+    :param fields: dict of key values to equal
+    :return: list of equality strings
+    """
     return [f'{k}=="{v}"' for k,v in fields.items()]
 
 
@@ -86,6 +111,14 @@ class QueryOptions:
 
 
 def _ctx_query(fields:dict, ctx_window:int, timestamp:str, index:str)->str:
+    """
+    get the query for a event group context
+    :param fields: fields to match
+    :param ctx_window: context time delta
+    :param timestamp: time to get around
+    :param index: index to pull from
+    :return: string query
+    """
     start, end = _get_time_around(timestamp, ctx_window)
 
     field_cond = ""
@@ -214,7 +247,7 @@ class ESQLWrapper:
             id=idd
         )
 
-        return flatten_get_response(event)
+        return _flatten_get_response(event)
 
     def count_ctx(self, fields:dict, ctx_window:int, timestamp:str, index:str)->int:
         """

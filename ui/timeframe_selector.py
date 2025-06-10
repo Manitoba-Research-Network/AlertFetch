@@ -10,6 +10,9 @@ time_lut = {
 }
 
 class TimeframeSelector(tk.Frame):
+    """
+    selector for a time and units for the time
+    """
     def __init__(self, parent, out: tk.StringVar, label_text: str):
         tk.Frame.__init__(self, parent)
         self.out = out

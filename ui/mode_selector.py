@@ -2,6 +2,9 @@ import tkinter as tk
 from tkinter import ttk
 
 class ModeSelector(tk.Frame):
+    """
+    mode selector for app mode
+    """
     def __init__(self, master, command):
         tk.Frame.__init__(self, master)
 

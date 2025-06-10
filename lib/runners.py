@@ -36,7 +36,7 @@ class GroupingRunner(Runnable):
             except KeyError:
                 field_value = None
 
-            if field_value is None:
+            if field_value is None: # skip field if not found in progenitor event
                 print(f"Field {field} not found in event")
                 continue
             fields[field] = field_value
