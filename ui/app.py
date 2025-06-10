@@ -149,7 +149,7 @@ class App:
 
         options = QueryOptions(self.start_date_var.get(), self.end_date_var.get(), int(self.limit.get()), self.blacklist)
 
-        # todo separate single and multi support
+        # todo separate single and multi support see #23
         if self.group_enabled.get():
             print(_get_field_list(self.ctx_fields.get()))
             main_runner = GroupingRunner(
