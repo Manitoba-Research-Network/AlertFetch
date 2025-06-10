@@ -9,6 +9,7 @@ from AlertFetcher import MainRunner
 from lib.api import ApiRunner
 from lib.retrieval import QueryOptions
 from lib.runners import GroupingRunner
+from ui.LabeledText import LabeledText
 from ui.api_selector import APISelector
 from ui.confirmation import ConfirmationDialog
 from ui.date_selector import DateSelector
@@ -21,6 +22,9 @@ DEFAULT_LIMIT = 100
 DEFAULT_OUT_DIR = "./out/"
 DEFAULT_END_DATE = str(datetime.date.today())
 DEFAULT_START_DATE = str(datetime.date.today() - datetime.timedelta(days=5))
+
+def _get_field_list(text):
+    return [e.strip() for e in text.split(",")]
 
 
 class App:
@@ -42,6 +46,7 @@ class App:
         self.exec_state = tk.BooleanVar(value=False)
 
         self.ctx_time = tk.StringVar()
+        self.ctx_fields:LabeledText|None = None
         self.group_enabled = tk.BooleanVar(value=False)
 
 
@@ -119,6 +124,10 @@ class App:
         group_checkbox = tk.Checkbutton(frame, variable=self.group_enabled, text="Enable Grouping")
         group_checkbox.pack(padx=3, pady=3, anchor="w")
 
+        ctx_fields = LabeledText(frame, "Context Fields (comma seperated):")
+        ctx_fields.pack(padx=3, pady=3)
+        self.ctx_fields = ctx_fields
+
         return frame
 
     def _on_mode_select(self, mode):
@@ -140,8 +149,17 @@ class App:
 
         options = QueryOptions(self.start_date_var.get(), self.end_date_var.get(), int(self.limit.get()), self.blacklist)
 
+        # todo separate single and multi support
         if self.group_enabled.get():
-            main_runner = GroupingRunner(options, self.out_path.get(), self.id_var.get(), index=self.index_var.get()) # todo separate single and multi support
+            print(_get_field_list(self.ctx_fields.get()))
+            main_runner = GroupingRunner(
+                options,
+                self.out_path.get(),
+                self.id_var.get(),
+                index=self.index_var.get(),
+                context_window=int(self.ctx_time.get()),
+                context_fields=_get_field_list(self.ctx_fields.get())
+            )
         else:
             main_runner = MainRunner(options, self.out_path.get())
 

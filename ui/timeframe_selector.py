@@ -25,6 +25,7 @@ class TimeframeSelector(tk.Frame):
 
         self.spin_var.trace_add("write", self._on_change)
         self.time_var.trace_add("write", self._on_change)
+        self._on_change() # ! force initial state
 
     def _on_change(self, *args):
         self.out.set(str(
