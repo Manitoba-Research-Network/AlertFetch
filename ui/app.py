@@ -24,6 +24,11 @@ DEFAULT_END_DATE = str(datetime.date.today())
 DEFAULT_START_DATE = str(datetime.date.today() - datetime.timedelta(days=5))
 
 def _get_field_list(text):
+    """
+    convert comma separated fields to list
+    :param text: text to convert
+    :return: list of fields
+    """
     return [e.strip() for e in text.split(",")]
 
 
@@ -105,6 +110,10 @@ class App:
         self.root.mainloop()
 
     def _create_calendar_frame(self, parent):
+        """
+        create the frame for the calendar widget tab
+        :param parent: parent for the frame
+        """
         frame = tk.Frame(parent)
 
         start_date = DateSelector(frame,"Start Date: ", self.start_date_var, initial=DEFAULT_START_DATE)
@@ -117,6 +126,11 @@ class App:
         return frame
 
     def _create_grouping_frame(self, parent):
+        """
+        create the frame for the grouping widget tab
+
+        :param parent: parent for the frame
+        """
         frame = tk.Frame(parent)
         ctx_window = TimeframeSelector(frame, self.ctx_time, "Context Timeframe: ")
         ctx_window.pack(padx=3, pady=3)
@@ -131,6 +145,9 @@ class App:
         return frame
 
     def _on_mode_select(self, mode):
+        """
+        mode select event handler
+        """
         match mode:
             case "single":
                 self.id_input.set_enabled(True)
@@ -145,6 +162,9 @@ class App:
         threading.Thread(target=self._confirm_then_run()).start() # this is probably a memory leak
 
     def _confirm_then_run(self):
+        """
+        confirm the user wants to run the query then run it
+        """
         self.exec_state.set(True) # this is the only place where these are written to so no lock should be needed
 
         options = QueryOptions(self.start_date_var.get(), self.end_date_var.get(), int(self.limit.get()), self.blacklist)
