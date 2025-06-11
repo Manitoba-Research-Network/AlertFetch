@@ -7,6 +7,7 @@ class PipelineRunner:
 
     def add_step(self, step:PipelineStep):
         self.steps.append(step)
+        return self
 
     def execute(self, start_data):
         data = start_data
