@@ -170,39 +170,42 @@ class App:
         options = QueryOptions(self.start_date_var.get(), self.end_date_var.get(), int(self.limit.get()), self.blacklist)
 
         # todo separate single and multi support see #23
-        if self.group_enabled.get():
-            print(_get_field_list(self.ctx_fields.get()))
-            main_runner = GroupingRunner(
-                options,
-                self.out_path.get(),
-                self.id_var.get(),
-                index=self.index_var.get(),
-                context_window=int(self.ctx_time.get()),
-                context_fields=_get_field_list(self.ctx_fields.get())
-            )
-        else:
-            main_runner = MainRunner(options, self.out_path.get())
-
-        api = self.api_selector.get_api()
-
-        ## RUN CONFIRMATION
-        if api != "ALL":
-            confirmation = self.runner.confirm(api, main_runner)
-            pass # count for all
-        else:
-            confirmation = self.runner.confirm_all(main_runner)
-            pass # count for one
-
-        confirmed = tk.BooleanVar()
-        ConfirmationDialog(self.root, "Confirm Query", confirmation, confirmed)
-
-        ## RUN FETCH
-        if confirmed.get(): # exit early if we fail to confirm
-            if api != "ALL": # check if we are running for all apis
-                self.runner.run(api, main_runner)
+        try:
+            if self.group_enabled.get():
+                print(_get_field_list(self.ctx_fields.get()))
+                main_runner = GroupingRunner(
+                    options,
+                    self.out_path.get(),
+                    self.id_var.get(),
+                    index=self.index_var.get(),
+                    context_window=int(self.ctx_time.get()),
+                    context_fields=_get_field_list(self.ctx_fields.get())
+                )
             else:
-                self.runner.run_all(main_runner)
-                lib.output.combine_jsonl(self.out_path.get())
+                main_runner = MainRunner(options, self.out_path.get())
+
+            api = self.api_selector.get_api()
+
+            ## RUN CONFIRMATION
+            if api != "ALL":
+                confirmation = self.runner.confirm(api, main_runner)
+                pass # count for all
+            else:
+                confirmation = self.runner.confirm_all(main_runner)
+                pass # count for one
+
+            confirmed = tk.BooleanVar()
+            ConfirmationDialog(self.root, "Confirm Query", confirmation, confirmed)
+
+            ## RUN FETCH
+            if confirmed.get(): # exit early if we fail to confirm
+                if api != "ALL": # check if we are running for all apis
+                    self.runner.run(api, main_runner)
+                else:
+                    self.runner.run_all(main_runner)
+                    lib.output.combine_jsonl(self.out_path.get())
+        except Exception as e:
+            print("Exception occurred while running the query:", e)
 
         self.exec_state.set(False)
 
