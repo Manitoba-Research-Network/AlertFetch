@@ -29,4 +29,20 @@ if __name__ == "__main__":
     multipipe.add_step(PrintData("Aggregate Summary Prompt"))
     multipipe.add_step(AIRunStep(client, "you are a security expert"))
 
-    print(multipipe.execute("./out/BU_small.jsonl"))
+    #print(multipipe.execute("./out/MRNet100.jsonl"))
+
+    json_format_pipe = PipelineRunner("JsonFormat")
+    json_format_pipe.add_step(LambdaPipelineStep("parse json",lambda x: json.loads(x["text"]))) # get first event
+    json_format_pipe.add_step(AIJsonPreprocess()) # get the AI input ready
+
+    mega_pipe = PipelineRunner("MultiEvent1Summary")
+    mega_pipe.add_step(ReadJsonlFileStep())
+    mega_pipe.add_step(PipelineLoopStep(json_format_pipe, "format json"))
+    mega_pipe.add_step(AggregateResponsesStep("Event #"))
+    mega_pipe.add_step(PromptAddStep("The following are related events, please write a brief summary of these events"))
+    mega_pipe.add_step(PrintData("Event Summary Prompt"))
+    mega_pipe.add_step(AIRunStep(client, "you are a security expert"))
+
+    print(mega_pipe.execute("./out/BU_small.jsonl"))
+
+
