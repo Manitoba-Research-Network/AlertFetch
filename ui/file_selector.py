@@ -6,7 +6,7 @@ class FileSelector(tk.Frame):
     """
     Selector for an output directory
     """
-    def __init__(self, master, label_text:str, path: tk.StringVar, d_type = "dir", types = (("JSONL",".jsonl"),)):
+    def __init__(self, master, label_text:str, path: tk.StringVar, d_type = "dir", types = (("JSONL",".jsonl"),), start_path = "."):
         """
         :param master: parent widget
         :param label_text: label for the selector
@@ -16,6 +16,7 @@ class FileSelector(tk.Frame):
         self.path = path
         self.d_type = d_type
         self.types = types
+        self.start_path = start_path
 
         label = tk.Label(self, text=label_text)
         label.grid(row=0, column=0)
@@ -37,5 +38,5 @@ class FileSelector(tk.Frame):
             case _:
                 raise "invalid dialogue type"
         
-        path = runner(initialdir=".", filetypes=self.types)
+        path = runner(initialdir=self.start_path, filetypes=self.types, defaultextension=self.types[0][1])
         self.path.set(path)
