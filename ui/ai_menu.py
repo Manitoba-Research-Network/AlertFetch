@@ -51,7 +51,8 @@ class AIMenu(tk.Frame):
 
     def _on_button(self):
         pipe = self.pipeline_lut[self.pipeline_type.get()](self.client, self.prompt.get())
-        # todo add write step
+        if self.out_file.get():
+            pipe.add_step(WriteData(self.out_file.get()))
         print(pipe.execute(self.in_file.get()))
 
 
