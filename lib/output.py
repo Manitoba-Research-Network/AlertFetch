@@ -3,12 +3,12 @@ import json
 import os
 
 
-def pretty_print(res: ApiResponse):
+def pretty_print(json_data):
     """
-    util function for printing a pretty ApiResponse object
-    :param res: ApiResponse to print
+    pretty print dict
+    :param json_data: dict to print
     """
-    print(json.dumps(res.raw,sort_keys=True, indent=4))
+    print(json.dumps(json_data,sort_keys=True, indent=4))
 
 def write_json(path, data):
     """
