@@ -6,10 +6,12 @@ from tkinter import simpledialog
 
 import lib.output
 from AlertFetcher import MainRunner
+from ai.AiClient import AIClient
 from lib.api import ApiRunner
 from lib.retrieval import QueryOptions
 from lib.runners import GroupingRunner
 from ui.LabeledText import LabeledText
+from ui.ai_menu import AIMenu
 from ui.api_selector import APISelector
 from ui.confirmation import ConfirmationDialog
 from ui.date_selector import DateSelector
@@ -33,9 +35,10 @@ def _get_field_list(text):
 
 
 class App:
-    def __init__(self, api_runner:ApiRunner, blacklist:list):
+    def __init__(self, api_runner:ApiRunner, blacklist:list, ai_client:AIClient):
         self.apis = api_runner.get_apis()
         self.runner = api_runner
+        self.ai_client = ai_client
         self.root = tk.Tk()
         self.limit = tk.StringVar()
         self.out_path = tk.StringVar()
@@ -99,9 +102,11 @@ class App:
         # Calendars
         frame_calendar = self._create_calendar_frame(frame_right)
         frame_grouping = self._create_grouping_frame(frame_right)
+        frame_ai = AIMenu(frame_right, self.ai_client)
 
         notebook.add(frame_calendar, text="Date Range")
         notebook.add(frame_grouping, text="Grouping")
+        notebook.add(frame_ai, text="AI Summarizer")
 
         # ====INIT STATE====
         self._on_mode_select(self.mode_selector.get_value())
