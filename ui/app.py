@@ -49,6 +49,8 @@ class App:
         self.ctx_fields:PresetText|None = None
         self.group_enabled = tk.BooleanVar(value=False)
 
+        self.exclude_fields:PresetText|None = None
+
 
     def start(self):
         """
@@ -95,10 +97,12 @@ class App:
         frame_calendar = self._create_calendar_frame(frame_right)
         frame_grouping = self._create_grouping_frame(frame_right)
         frame_ai = AIMenu(frame_right, self.ai_client)
+        frame_exclude = self._create_exclusion_frame(frame_right)
 
         notebook.add(frame_calendar, text="Date Range")
         notebook.add(frame_grouping, text="Grouping")
         notebook.add(frame_ai, text="AI Summarizer")
+        notebook.add(frame_exclude, text="Field Exclusion")
 
         # ====INIT STATE====
         self._on_mode_select(self.mode_selector.get_value())
@@ -141,6 +145,13 @@ class App:
 
         return frame
 
+    def _create_exclusion_frame(self, parent):
+        frame = tk.Frame(parent)
+        field = PresetText(frame, self.blacklist, "Fields: ")
+        field.pack(anchor="w")
+        self.exclude_fields = field
+        return frame
+
     def _on_mode_select(self, mode):
         """
         mode select event handler
@@ -164,7 +175,7 @@ class App:
         """
         self.exec_state.set(True) # this is the only place where these are written to so no lock should be needed
 
-        options = QueryOptions(self.start_date_var.get(), self.end_date_var.get(), int(self.limit.get()), self.blacklist)
+        options = QueryOptions(self.start_date_var.get(), self.end_date_var.get(), int(self.limit.get()), self.exclude_fields.get())
 
         # todo separate single and multi support see #23
         try:
