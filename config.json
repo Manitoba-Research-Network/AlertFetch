@@ -4,5 +4,14 @@
     "agent.*",
     "ecs.*",
     "cloud.*"
-  ]
+  ],
+  "context_fields" : {
+    "UserHost": [
+      "user.name",
+      "host.name"
+    ],
+    "Source IP":[
+      "source.ip"
+    ]
+  }
 }

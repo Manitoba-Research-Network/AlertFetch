@@ -10,7 +10,7 @@ from ai.AiClient import AIClient
 from lib.api import ApiRunner
 from lib.retrieval import QueryOptions
 from lib.runners import GroupingRunner
-from ui.LabeledText import LabeledText
+from ui.LabeledText import LabeledText, PresetText
 from ui.ai_menu import AIMenu
 from ui.api_selector import APISelector
 from ui.confirmation import ConfirmationDialog
@@ -35,7 +35,7 @@ def _get_field_list(text):
 
 
 class App:
-    def __init__(self, api_runner:ApiRunner, blacklist:list, ai_client:AIClient):
+    def __init__(self, api_runner:ApiRunner, config:dict, ai_client:AIClient):
         self.apis = api_runner.get_apis()
         self.runner = api_runner
         self.ai_client = ai_client
@@ -50,7 +50,8 @@ class App:
         self.id_var = tk.StringVar()
         self.index_input:LabeledEntry|None = None
         self.index_var = tk.StringVar()
-        self.blacklist = blacklist
+        self.blacklist = config["exclude"]
+        self.context_presets = config["context_fields"]
         self.exec_state = tk.BooleanVar(value=False)
 
         self.ctx_time = tk.StringVar()
@@ -143,7 +144,7 @@ class App:
         group_checkbox = tk.Checkbutton(frame, variable=self.group_enabled, text="Enable Grouping")
         group_checkbox.pack(padx=3, pady=3, anchor="w")
 
-        ctx_fields = LabeledText(frame, "Context Fields (comma seperated):")
+        ctx_fields = PresetText(frame,  self.context_presets, "Context Fields (comma seperated): ")
         ctx_fields.pack(padx=3, pady=3)
         self.ctx_fields = ctx_fields
 
