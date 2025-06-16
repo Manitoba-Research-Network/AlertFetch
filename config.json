@@ -1,10 +1,14 @@
 {
-  "exclude": [
-    "data_stream.*",
-    "agent.*",
-    "ecs.*",
-    "cloud.*"
-  ],
+  "exclude":{
+    "default": [
+      "data_stream.*",
+      "agent.*",
+      "ecs.*",
+      "cloud.*",
+      "elastic_agent.*",
+      "event.dataset"
+    ]
+  },
   "context_fields" : {
     "UserHost": [
       "user.name",
