@@ -87,7 +87,8 @@ class QueryOptions:
                  date_start:str = "1970-01-01T01:00:00Z",
                  date_end:str = datetime.datetime.now().isoformat(),
                  limit:int=100,
-                 blacklist:list=None
+                 blacklist:list=None,
+                 include:bool=False
                  ):
         """
         :param date_start: start time for the time range
@@ -98,11 +99,15 @@ class QueryOptions:
         self.date_end = date_end
         self.limit = limit
         self.blacklist = blacklist
+        self.include = include
 
     def build_args(self):
         out = ""
         if self.blacklist is not None:
-            out += f"| DROP {_list_to_string_no_quotes(self.blacklist)}"
+            out += f"| {'KEEP' if self.include else 'DROP'} {_list_to_string_no_quotes(self.blacklist)}"
+            if self.include:
+                out += ",_id,_index" # these always need to be kept, this might be slightly less efficient since it's on a separate line though
+
         out += f"| LIMIT {self.limit}"
         return out
 

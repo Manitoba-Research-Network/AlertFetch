@@ -41,7 +41,8 @@ class App:
         self.id_var = tk.StringVar()
         self.index_input:LabeledEntry|None = None
         self.index_var = tk.StringVar()
-        self.blacklist = config["exclude"]
+        self.fields_list = config["exclude"]
+        self.fields_list_include = tk.BooleanVar()
         self.context_presets = config["context_fields"]
         self.exec_state = tk.BooleanVar(value=False)
 
@@ -147,9 +148,15 @@ class App:
 
     def _create_exclusion_frame(self, parent):
         frame = tk.Frame(parent)
-        field = PresetText(frame, self.blacklist, "Fields: ")
+
+        field = PresetText(frame, self.fields_list, "Fields: ")
         field.pack(anchor="w")
         self.exclude_fields = field
+
+        include_button = tk.Checkbutton(frame, variable=self.fields_list_include, text="Include")
+        include_button.pack(padx=3, pady=3,anchor="w")
+        include_button.deselect()
+
         return frame
 
     def _on_mode_select(self, mode):
@@ -175,7 +182,13 @@ class App:
         """
         self.exec_state.set(True) # this is the only place where these are written to so no lock should be needed
 
-        options = QueryOptions(self.start_date_var.get(), self.end_date_var.get(), int(self.limit.get()), self.exclude_fields.get())
+        options = QueryOptions(
+            self.start_date_var.get(),
+            self.end_date_var.get(),
+            int(self.limit.get()),
+            self.exclude_fields.get(),
+            self.fields_list_include.get()
+        )
 
         # todo separate single and multi support see #23
         try:
