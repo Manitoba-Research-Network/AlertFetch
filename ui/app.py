@@ -25,15 +25,6 @@ DEFAULT_OUT_DIR = "./out/"
 DEFAULT_END_DATE = str(datetime.date.today())
 DEFAULT_START_DATE = str(datetime.date.today() - datetime.timedelta(days=5))
 
-def _get_field_list(text):
-    """
-    convert comma separated fields to list
-    :param text: text to convert
-    :return: list of fields
-    """
-    return [e.strip() for e in text.split(",")]
-
-
 class App:
     def __init__(self, api_runner:ApiRunner, config:dict, ai_client:AIClient):
         self.apis = api_runner.get_apis()
@@ -55,7 +46,7 @@ class App:
         self.exec_state = tk.BooleanVar(value=False)
 
         self.ctx_time = tk.StringVar()
-        self.ctx_fields:LabeledText|None = None
+        self.ctx_fields:PresetText|None = None
         self.group_enabled = tk.BooleanVar(value=False)
 
 
@@ -178,14 +169,13 @@ class App:
         # todo separate single and multi support see #23
         try:
             if self.group_enabled.get():
-                print(_get_field_list(self.ctx_fields.get()))
                 main_runner = GroupingRunner(
                     options,
                     self.out_path.get(),
                     self.id_var.get(),
                     index=self.index_var.get(),
                     context_window=int(self.ctx_time.get()),
-                    context_fields=_get_field_list(self.ctx_fields.get())
+                    context_fields=self.ctx_fields.get()
                 )
             else:
                 main_runner = MainRunner(options, self.out_path.get())

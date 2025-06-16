@@ -49,12 +49,14 @@ class PresetText(tk.Frame):
         option.grid(row=0, column=1)
         return frame
 
-    def _on_preset_changed(self, selected:tk.StringVar):
-        pass
+    def _on_preset_changed(self, _):
+        preset = ','.join(self.presets[self.preset_var.get()])
+        self.textbox.delete('1.0',tk.END)
+        self.textbox.insert('1.0', preset)
 
 
-    def get(self)->str:
-        pass
+    def get(self)->list[str]:
+        return [e.strip() for e in self.textbox.get("1.0", tk.END).split(',')]
 
 
 
