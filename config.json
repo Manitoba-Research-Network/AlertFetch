@@ -1,8 +1,20 @@
 {
-  "exclude": [
-    "data_stream.*",
-    "agent.*",
-    "ecs.*",
-    "cloud.*"
-  ]
+  "exclude":{
+    "default": [
+      "data_stream.*",
+      "agent.*",
+      "ecs.*",
+      "cloud.*",
+      "event.dataset"
+    ]
+  },
+  "context_fields" : {
+    "UserHost": [
+      "user.name",
+      "host.name"
+    ],
+    "Source IP":[
+      "source.ip"
+    ]
+  }
 }

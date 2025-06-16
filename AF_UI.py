@@ -10,12 +10,15 @@ if __name__ == "__main__":
         apis = json.load(f)
 
     with open("openai.json") as f:
-        config = json.loads(f.read())
+        ai_conf = json.loads(f.read())
+
+    with open("config.json") as f:
+        config = json.load(f)
 
     api_runner = ApiRunner(apis)
-    ai_client = AIClient(**config, model = "local-model")
+    ai_client = AIClient(**ai_conf, model = "local-model")
 
-    app = App(api_runner, lib.processing.get_blacklist(), ai_client)
+    app = App(api_runner, config, ai_client)
 
 
 

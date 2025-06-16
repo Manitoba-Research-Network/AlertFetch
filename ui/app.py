@@ -10,7 +10,7 @@ from ai.AiClient import AIClient
 from lib.api import ApiRunner
 from lib.retrieval import QueryOptions
 from lib.runners import GroupingRunner
-from ui.LabeledText import LabeledText
+from ui.LabeledText import LabeledText, PresetText
 from ui.ai_menu import AIMenu
 from ui.api_selector import APISelector
 from ui.confirmation import ConfirmationDialog
@@ -25,17 +25,8 @@ DEFAULT_OUT_DIR = "./out/"
 DEFAULT_END_DATE = str(datetime.date.today())
 DEFAULT_START_DATE = str(datetime.date.today() - datetime.timedelta(days=5))
 
-def _get_field_list(text):
-    """
-    convert comma separated fields to list
-    :param text: text to convert
-    :return: list of fields
-    """
-    return [e.strip() for e in text.split(",")]
-
-
 class App:
-    def __init__(self, api_runner:ApiRunner, blacklist:list, ai_client:AIClient):
+    def __init__(self, api_runner:ApiRunner, config:dict, ai_client:AIClient):
         self.apis = api_runner.get_apis()
         self.runner = api_runner
         self.ai_client = ai_client
@@ -50,12 +41,16 @@ class App:
         self.id_var = tk.StringVar()
         self.index_input:LabeledEntry|None = None
         self.index_var = tk.StringVar()
-        self.blacklist = blacklist
+        self.fields_list = config["exclude"]
+        self.fields_list_include = tk.BooleanVar()
+        self.context_presets = config["context_fields"]
         self.exec_state = tk.BooleanVar(value=False)
 
         self.ctx_time = tk.StringVar()
-        self.ctx_fields:LabeledText|None = None
+        self.ctx_fields:PresetText|None = None
         self.group_enabled = tk.BooleanVar(value=False)
+
+        self.exclude_fields:PresetText|None = None
 
 
     def start(self):
@@ -103,10 +98,12 @@ class App:
         frame_calendar = self._create_calendar_frame(frame_right)
         frame_grouping = self._create_grouping_frame(frame_right)
         frame_ai = AIMenu(frame_right, self.ai_client)
+        frame_exclude = self._create_exclusion_frame(frame_right)
 
         notebook.add(frame_calendar, text="Date Range")
         notebook.add(frame_grouping, text="Grouping")
         notebook.add(frame_ai, text="AI Summarizer")
+        notebook.add(frame_exclude, text="Field Exclusion")
 
         # ====INIT STATE====
         self._on_mode_select(self.mode_selector.get_value())
@@ -143,9 +140,22 @@ class App:
         group_checkbox = tk.Checkbutton(frame, variable=self.group_enabled, text="Enable Grouping")
         group_checkbox.pack(padx=3, pady=3, anchor="w")
 
-        ctx_fields = LabeledText(frame, "Context Fields (comma seperated):")
+        ctx_fields = PresetText(frame,  self.context_presets, "Context Fields (comma seperated): ")
         ctx_fields.pack(padx=3, pady=3)
         self.ctx_fields = ctx_fields
+
+        return frame
+
+    def _create_exclusion_frame(self, parent):
+        frame = tk.Frame(parent)
+
+        field = PresetText(frame, self.fields_list, "Fields: ")
+        field.pack(anchor="w")
+        self.exclude_fields = field
+
+        include_button = tk.Checkbutton(frame, variable=self.fields_list_include, text="Include")
+        include_button.pack(padx=3, pady=3,anchor="w")
+        include_button.deselect()
 
         return frame
 
@@ -172,19 +182,24 @@ class App:
         """
         self.exec_state.set(True) # this is the only place where these are written to so no lock should be needed
 
-        options = QueryOptions(self.start_date_var.get(), self.end_date_var.get(), int(self.limit.get()), self.blacklist)
+        options = QueryOptions(
+            self.start_date_var.get(),
+            self.end_date_var.get(),
+            int(self.limit.get()),
+            self.exclude_fields.get(),
+            self.fields_list_include.get()
+        )
 
         # todo separate single and multi support see #23
         try:
             if self.group_enabled.get():
-                print(_get_field_list(self.ctx_fields.get()))
                 main_runner = GroupingRunner(
                     options,
                     self.out_path.get(),
                     self.id_var.get(),
                     index=self.index_var.get(),
                     context_window=int(self.ctx_time.get()),
-                    context_fields=_get_field_list(self.ctx_fields.get())
+                    context_fields=self.ctx_fields.get()
                 )
             else:
                 main_runner = MainRunner(options, self.out_path.get())
