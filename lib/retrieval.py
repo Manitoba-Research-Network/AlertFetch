@@ -274,7 +274,7 @@ class ESQLWrapper:
         :return: list of events in context
         """
         res = self.client.esql.query(
-            query=_ctx_query(fields, ctx_window, timestamp, index) + f"|LIMIT {options.limit}"
+            query=_ctx_query(fields, ctx_window, timestamp, index) + options.build_args()
         )
         return res_to_dict(res)
 
