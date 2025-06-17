@@ -45,6 +45,7 @@ class App:
         self.fields_list_include = tk.BooleanVar()
         self.context_presets = config["context_fields"]
         self.exec_state = tk.BooleanVar(value=False)
+        self.prompt_list = config["prompts"]
 
         self.ctx_time = tk.StringVar()
         self.ctx_fields:PresetText|None = None
@@ -97,7 +98,7 @@ class App:
         # Calendars
         frame_calendar = self._create_calendar_frame(frame_right)
         frame_grouping = self._create_grouping_frame(frame_right)
-        frame_ai = AIMenu(frame_right, self.ai_client)
+        frame_ai = AIMenu(frame_right, self.ai_client,self.prompt_list)
         frame_exclude = self._create_exclusion_frame(frame_right)
 
         notebook.add(frame_calendar, text="Date Range")

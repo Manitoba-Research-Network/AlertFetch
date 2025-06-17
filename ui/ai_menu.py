@@ -4,10 +4,10 @@ from tkinter import ttk
 from pipeline import *
 from ui.file_selector import FileSelector
 
-DEFAULT_PROMPTS = [
+DEFAULT_PROMPTS = (
     "The following are summaries from alerts that are all related to each other, write a brief summary of these summaries",
     "The following are related events, please write a 1 paragraph summary of these events"
-]
+)
 
 DEFAULT_INPUT_DIR = "./out/"
 
@@ -18,7 +18,7 @@ class AIMenu(tk.Frame):
         "Single Summary":MultiEventSingleSummary
     }
 
-    def __init__(self, master, client:AIClient):
+    def __init__(self, master, client:AIClient, prompts:list[str] = DEFAULT_PROMPTS):
         tk.Frame.__init__(self, master)
         self.in_file = tk.StringVar()
         self.out_file = tk.StringVar()
@@ -26,8 +26,9 @@ class AIMenu(tk.Frame):
         self.pipeline_type = tk.StringVar()
         self.client = client
 
+        self.prompt_list = prompts
         self.prompt = tk.StringVar()
-        self.prompt.set(DEFAULT_PROMPTS[0])
+        self.prompt.set(self.prompt_list[0])
 
         self._build()
 
@@ -42,7 +43,7 @@ class AIMenu(tk.Frame):
         drop.pack(anchor="w", padx=3, pady=3)
         drop.config(width=20)
 
-        prompt_combo = ttk.Combobox(self, textvariable=self.prompt, values=DEFAULT_PROMPTS)
+        prompt_combo = ttk.Combobox(self, textvariable=self.prompt, values=self.prompt_list)
         prompt_combo.pack(anchor="w", padx=3, pady=3)
         prompt_combo.config(width=70)
 
