@@ -6,6 +6,30 @@
       "ecs.*",
       "cloud.*",
       "event.dataset"
+    ],
+    "event details" : [
+      "event.*",
+      "winlog.event_data.*",
+      "user.name"
+    ],
+    "message only": [
+      "message"
+    ],
+    "events minimal": [
+      "event.action",
+      "@timestamp"
+    ],
+    "events + process": [
+      "process.*",
+      "@timestamp",
+      "event.*",
+      "user.name"
+    ],
+    "The Powershell Special": [
+      "process.command_line",
+      "powershell.file.script_block_text",
+      "@timestamp",
+      "user.name"
     ]
   },
   "context_fields" : {
