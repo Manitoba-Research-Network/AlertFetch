@@ -10,6 +10,7 @@ DEFAULT_PROMPTS = (
 )
 
 DEFAULT_INPUT_DIR = "./out/"
+DEFAULT_OUTPUT_DIR = "./runs/"
 
 class AIMenu(tk.Frame):
 
@@ -36,7 +37,13 @@ class AIMenu(tk.Frame):
         in_field = FileSelector(self, "Input File: ", self.in_file, "ofile", start_path=DEFAULT_INPUT_DIR)
         in_field.pack(anchor="w", padx=3, pady=3)
 
-        out_field = FileSelector(self, "Output File: ", self.out_file, "sfile", types=(("TXT", "*.txt"),))
+        out_field = FileSelector(
+            self,
+            "Output File: ",
+            self.out_file,
+            "sfile",
+            types=(("TXT", "*.txt"),),
+            start_path=DEFAULT_OUTPUT_DIR)
         out_field.pack(anchor="w", padx=3, pady=3)
 
         drop = ttk.OptionMenu(self, self.pipeline_type, list(self.pipeline_lut.keys())[0], *self.pipeline_lut.keys())
