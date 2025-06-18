@@ -17,12 +17,16 @@ if __name__ == "__main__":
 
     multipipe = MultiEventSummary(client)
 
-    print(multipipe.execute("./out/BU_small.jsonl"))
+    #print(multipipe.execute("./out/BU_small.jsonl"))
 
     mega_pipe = MultiEventSingleSummary(
         client,
         "The following are related events, please write a 1 paragraph summary of these events"
     )
     #print(mega_pipe.execute("./out/BU_small.jsonl"))
+
+    inter = intermediate_summary_basic(client, 2, 2)
+    inter.print_steps()
+    print(inter.execute("./out/BU_small.jsonl"))
 
 
