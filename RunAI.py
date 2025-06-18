@@ -25,8 +25,9 @@ if __name__ == "__main__":
     )
     #print(mega_pipe.execute("./out/BU_small.jsonl"))
 
-    inter = intermediate_summary_basic(client, 2, 2)
+    inter = intermediate_summary(client, [2,3], 2)
     inter.print_steps()
     print(inter.execute("./out/BU_small.jsonl"))
+    #print(inter.execute("./out/MRNet_events-only_large.jsonl"))
 
 

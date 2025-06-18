@@ -49,23 +49,27 @@ def MultiEventSingleSummary(
 
     return mega_pipe
 
-def intermediate_summary_basic(
+def intermediate_summary(
         client:AIClient,
-        compression:int,
-        depth:int,
-        prompt:str="The following are summaries from alerts that are all related to each other, write a brief summary of these summaries",
-        prompt_intermediate:str = "The following are related events, please write a brief summary of these events",
-)-> PipelineRunner:
+        compression: list[int],
+        depth: int,
+        prompt: str = "The following are summaries from alerts that are all related to each other, write a brief summary of these summaries",
+        prompt_intermediate: str = "The following are related events, please write a brief summary of these events",
+) -> PipelineRunner:
     pipeline = PipelineRunner("Parse inner json")
-    pipeline.add_step(LambdaPipelineStep("Get First List Value & Parse to json", lambda x: json.loads(x["text"])))  # get first event
+    pipeline.add_step(
+        LambdaPipelineStep("Get First List Value & Parse to json", lambda x: json.loads(x["text"])))  # get first event
     pipeline.add_step(AIJsonPreprocess())  # get the AI input ready
 
     multipipe = PipelineRunner("MultiEventRunner")
     multipipe.add_step(ReadJsonlFileStep())
-    multipipe.add_step(PipelineLoopStep(pipeline, "ReadJsons")) # finish parsing
+    multipipe.add_step(PipelineLoopStep(pipeline, "ReadJsons"))  # finish parsing
     for level in range(depth):
-        multipipe.add_step(ListSplitStep(compression))
-        multipipe.add_step(PipelineLoopStep(_intermediate_pipe(client,prompt_intermediate),f"Intermediate Summary, Level {level}"))
+        multipipe.add_step(ListSplitStep(compression[level]))
+        multipipe.add_step(PipelineLoopStep(
+            _intermediate_pipe(client, prompt_intermediate),
+            f"Intermediate Summary, Level {level}")
+        )
 
     multipipe.add_step(AggregateResponsesStep("Summary #"))
     multipipe.add_step(PromptAddStep(prompt))
@@ -73,6 +77,16 @@ def intermediate_summary_basic(
     multipipe.add_step(AIRunStep(client, "you are a security expert"))
 
     return multipipe
+
+
+def intermediate_summary_basic(
+        client:AIClient,
+        compression:int,
+        depth:int,
+        prompt:str="The following are summaries from alerts that are all related to each other, write a brief summary of these summaries",
+        prompt_intermediate:str = "The following are related events, please write a brief summary of these events"
+) -> PipelineRunner:
+    return intermediate_summary(client, [compression for _ in range(depth)], depth, prompt, prompt_intermediate)
 
 def _intermediate_pipe(client:AIClient, prompt:str = "write a 4 sentence summary of this alert data") -> PipelineRunner:
     pipeline = PipelineRunner("SummarizeEvent")
