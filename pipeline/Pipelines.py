@@ -5,7 +5,8 @@ from pipeline.steps import *
 
 
 def MultiEventSummary(client:AIClient,
-                      prompt="The following are summaries from alerts that are all related to each other, write a brief summary of these summaries"
+                      prompt="The following are summaries from alerts that are all related to each other, write a brief summary of these summaries",
+                      **kwargs
                       ) -> PipelineRunner:
     """
     summarize multiple events using intermediate summaries for each event
@@ -30,7 +31,8 @@ def MultiEventSummary(client:AIClient,
 
 def MultiEventSingleSummary(
         client:AIClient,
-        prompt: str = "The following are related events, please write a brief summary of these events"
+        prompt: str = "The following are related events, please write a brief summary of these events",
+        **kwargs
 ) -> PipelineRunner:
     """
     summarize all events in single ai prompt
@@ -51,10 +53,11 @@ def MultiEventSingleSummary(
 
 def intermediate_summary(
         client:AIClient,
-        compression: list[int],
-        depth: int,
         prompt: str = "The following are summaries from alerts that are all related to each other, write a brief summary of these summaries",
+        compression: list[int] = 1,
+        depth: int = 0,
         prompt_intermediate: str = "The following are related events, please write a brief summary of these events",
+        **kwargs
 ) -> PipelineRunner:
     pipeline = PipelineRunner("Parse inner json")
     pipeline.add_step(
@@ -86,7 +89,7 @@ def intermediate_summary_basic(
         prompt:str="The following are summaries from alerts that are all related to each other, write a brief summary of these summaries",
         prompt_intermediate:str = "The following are related events, please write a brief summary of these events"
 ) -> PipelineRunner:
-    return intermediate_summary(client, [compression for _ in range(depth)], depth, prompt, prompt_intermediate)
+    return intermediate_summary(client, prompt, [compression for _ in range(depth)], depth,  prompt_intermediate)
 
 def _intermediate_pipe(client:AIClient, prompt:str = "write a 4 sentence summary of this alert data") -> PipelineRunner:
     pipeline = PipelineRunner("SummarizeEvent")
