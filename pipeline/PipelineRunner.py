@@ -22,3 +22,7 @@ class PipelineRunner:
 
     def __str__(self):
         return self.name
+
+    def print_steps(self):
+        for step in self.steps:
+            print(f"[{self}] -> {step}")

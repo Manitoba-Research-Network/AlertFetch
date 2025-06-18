@@ -43,6 +43,7 @@
   },
   "prompts": [
     "The following are summaries from alerts that are all related to each other, write a brief summary of these summaries",
-    "The following are related events, please write a 1 paragraph summary of these events"
+    "The following are related events, please write a 1 paragraph summary of these events",
+    "The following are related events, please write a 4 sentence summary of these events"
   ]
 }

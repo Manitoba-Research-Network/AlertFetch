@@ -19,7 +19,7 @@ class LabeledSpinbox(LabeledField):
     """
     Spinbox with a label
     """
-    def __init__(self, parent, label_text:str, out: tk.StringVar):
+    def __init__(self, parent, label_text:str, out: tk.StringVar, _from:int = 10, to:int = 10000):
         """
         :param parent: parent widget
         :param label_text: label for the field
@@ -27,8 +27,8 @@ class LabeledSpinbox(LabeledField):
         """
         super().__init__(parent, label_text, tk.Spinbox,
                          textvariable=out,
-                         from_=10,
-                         to=10000
+                         from_=_from,
+                         to=to
                          )
 
 class LabeledEntry(LabeledField):

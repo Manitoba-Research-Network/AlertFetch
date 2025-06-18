@@ -20,3 +20,14 @@ class WriteData(PipelineStep):
 
     def __str__(self):
         return "Write Data"
+
+class ListSplitStep(PipelineStep):
+
+    def __init__(self, compression):
+        self.compression = compression
+
+    def run(self, data):
+        return [data[i:i + self.compression] for i in range(0, len(data), self.compression)]
+
+    def __str__(self):
+        return f"List Split -> {self.compression}"
