@@ -40,6 +40,8 @@ class AIMenu(tk.Frame):
         self.prompt_inter = tk.StringVar()
         self.prompt_inter.set(self.prompt_list[-1])
 
+        self.inter_settings = None
+
         self._build()
 
     def _build(self):
@@ -63,11 +65,17 @@ class AIMenu(tk.Frame):
         prompt_combo.pack(anchor="w", padx=3, pady=3)
         prompt_combo.config(width=70)
 
-        inter_settings = self._intermediate_options(self)
+        container = ttk.Frame(self)
+        inter_settings = self._intermediate_options(container)
         inter_settings.pack(anchor="w", padx=3, pady=3)
+        container.pack(anchor="w", padx=3, pady=3)
+        self.inter_settings = inter_settings
 
         exec_butt = tk.Button(self, text="Run AI", command=self._on_button)
         exec_butt.pack(anchor="w", pady=10)
+
+        self.pipeline_type.trace_add("write", self._on_pipeline_changed)
+        self._on_pipeline_changed()
 
     def _on_button(self):
         pipe = self.pipeline_lut[self.pipeline_type.get()](self.client, self.prompt.get(),**self._make_kwargs())
@@ -88,6 +96,12 @@ class AIMenu(tk.Frame):
         prompt_combo.config(width=70)
 
         return frame
+
+    def _on_pipeline_changed(self, *_):
+        if self.pipeline_type.get() == "Intermediate":
+            self.inter_settings.pack()
+        else:
+            self.inter_settings.pack_forget()
 
     def _make_kwargs(self):
         return {
