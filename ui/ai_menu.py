@@ -21,6 +21,11 @@ class AIMenu(tk.Frame):
         "Intermediate":intermediate_summary
     }
 
+    json_process_modes:list[str] = [
+        AIJsonPreprocess.MODE_JSON,
+        AIJsonPreprocess.MODE_NEWLINE
+    ]
+
     def __init__(self, master, client:AIClient, prompts:list[str] = DEFAULT_PROMPTS):
         tk.Frame.__init__(self, master)
         self.in_file = tk.StringVar()
@@ -42,6 +47,9 @@ class AIMenu(tk.Frame):
 
         self.inter_settings = None
 
+        self.json_process_mode = tk.StringVar()
+        self.json_process_mode.set(self.json_process_modes[0])
+
         self._build()
 
     def _build(self):
@@ -56,6 +64,10 @@ class AIMenu(tk.Frame):
             types=(("TXT", "*.txt"),),
             start_path=DEFAULT_OUTPUT_DIR)
         out_field.pack(anchor="w", padx=3, pady=3)
+
+        pre_process_drop = ttk.OptionMenu(self, self.json_process_mode, self.json_process_modes[0], *self.json_process_modes)
+        pre_process_drop.pack(anchor="w", padx=3, pady=3)
+        pre_process_drop.config(width=20)
 
         drop = ttk.OptionMenu(self, self.pipeline_type, list(self.pipeline_lut.keys())[0], *self.pipeline_lut.keys())
         drop.pack(anchor="w", padx=3, pady=3)
@@ -108,6 +120,7 @@ class AIMenu(tk.Frame):
             "depth": int(self.depth.get()),
             "compression": [int(i) for i in self.compress.get().split(",")],
             "prompt_intermediate": self.prompt_inter.get(),
+            "mode": self.json_process_mode.get()
         }
 
 

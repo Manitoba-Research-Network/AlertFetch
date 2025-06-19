@@ -6,15 +6,15 @@ from pipeline.steps import *
 
 def MultiEventSummary(client:AIClient,
                       prompt="The following are summaries from alerts that are all related to each other, write a brief summary of these summaries",
+                      mode: str = AIJsonPreprocess.MODE_JSON,
                       **kwargs
                       ) -> PipelineRunner:
     """
     summarize multiple events using intermediate summaries for each event
     """
 
-    pipeline = PipelineRunner("SummarizeEvent")
-    pipeline.add_step(LambdaPipelineStep("Get First List Value & Parse to json", lambda x: json.loads(x["text"])))  # get first event
-    pipeline.add_step(AIJsonPreprocess())  # get the AI input ready
+    pipeline = _standard_preprocess(mode)
+
     pipeline.add_step(PromptAddStep("write a 4 sentence summary of this alert data"))  # add prompt to data
     pipeline.add_step(PrintData("Print Prompt"))
     pipeline.add_step(AIRunStep(client, "you are a security expert"))  # summarize the event
@@ -32,14 +32,13 @@ def MultiEventSummary(client:AIClient,
 def MultiEventSingleSummary(
         client:AIClient,
         prompt: str = "The following are related events, please write a brief summary of these events",
+        mode:str = AIJsonPreprocess.MODE_JSON,
         **kwargs
 ) -> PipelineRunner:
     """
     summarize all events in single ai prompt
     """
-    json_format_pipe = PipelineRunner("JsonFormat")
-    json_format_pipe.add_step(LambdaPipelineStep("parse json",lambda x: json.loads(x["text"]))) # get first event
-    json_format_pipe.add_step(AIJsonPreprocess()) # get the AI input ready
+    json_format_pipe = _standard_preprocess(mode)
 
     mega_pipe = PipelineRunner("MultiEvent1Summary")
     mega_pipe.add_step(ReadJsonlFileStep())
@@ -57,12 +56,10 @@ def intermediate_summary(
         compression: list[int] = 1,
         depth: int = 0,
         prompt_intermediate: str = "The following are related events, please write a brief summary of these events",
+        mode:str = AIJsonPreprocess.MODE_JSON,
         **kwargs
 ) -> PipelineRunner:
-    pipeline = PipelineRunner("Parse inner json")
-    pipeline.add_step(
-        LambdaPipelineStep("Get First List Value & Parse to json", lambda x: json.loads(x["text"])))  # get first event
-    pipeline.add_step(AIJsonPreprocess())  # get the AI input ready
+    pipeline = _standard_preprocess(mode)
 
     multipipe = PipelineRunner("MultiEventRunner")
     multipipe.add_step(ReadJsonlFileStep())
@@ -80,6 +77,14 @@ def intermediate_summary(
     multipipe.add_step(AIRunStep(client, "you are a security expert"))
 
     return multipipe
+
+
+def _standard_preprocess(mode):
+    pipeline = PipelineRunner("Parse inner json")
+    pipeline.add_step(
+        LambdaPipelineStep("Get First List Value & Parse to json", lambda x: json.loads(x["text"])))  # get first event
+    pipeline.add_step(AIJsonPreprocess(mode))  # get the AI input ready
+    return pipeline
 
 
 def intermediate_summary_basic(
