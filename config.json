@@ -5,7 +5,16 @@
       "agent.*",
       "ecs.*",
       "cloud.*",
-      "event.dataset"
+      "event.dataset",
+      "elastic_agent.*",
+      "organization.id",
+      "user.name.text",
+      "user.id",
+      "user_agent.*.text",
+      "source.as.organization.name.text",
+      "source.geo.country_iso_code",
+      "source.geo.region_iso_code",
+      "source.geo.location"
     ],
     "event details" : [
       "event.*",
