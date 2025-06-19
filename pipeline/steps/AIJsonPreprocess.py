@@ -13,7 +13,7 @@ class AIJsonPreprocess(PipelineStep):
         self.mode = mode
         match mode:
             case "json":
-                runner = self.run
+                runner = self._for_json
             case "newline":
                 runner = self._for_newline
                 pass
