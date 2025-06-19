@@ -13,7 +13,7 @@ class AggregateResponsesStep(PipelineStep):
         """
         out = ""
         for n,entry in enumerate(data):
-            tabbed = '\t'.join(entry.splitlines(True))
+            tabbed = '\t' + '\t'.join(entry.splitlines(True))
             out += f"{self.prefix}{n}\n{tabbed}\n"
         return out
 
