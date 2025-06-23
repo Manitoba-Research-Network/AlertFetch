@@ -191,7 +191,6 @@ class App:
             self.fields_list_include.get()
         )
 
-        # todo separate single and multi support see #23
         try:
             if self.group_enabled.get():
                 main_runner = GroupingRunner(
