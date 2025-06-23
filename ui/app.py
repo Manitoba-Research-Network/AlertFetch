@@ -43,7 +43,6 @@ class App:
         self.start_date_var = tk.StringVar()
         self.end_date_var = tk.StringVar()
         self.api_selector = APISelector(self.apis)
-        self.mode_selector = None
         self.id_input:LabeledEntry|None = None
         self.id_var = tk.StringVar()
         self.index_input:LabeledEntry|None = None
@@ -56,7 +55,6 @@ class App:
 
         self.ctx_time = tk.StringVar()
         self.ctx_fields:PresetText|None = None
-        self.group_enabled = tk.BooleanVar(value=False)
 
         self.exclude_fields:PresetText|None = None
 
@@ -74,8 +72,6 @@ class App:
         frame_right.grid(row=0, column=1, sticky="n")
 
         # ====Left====
-        self.mode_selector = ModeSelector(frame_left, self._on_mode_select)
-        self.mode_selector.pack(padx=3, pady=3, anchor="w")
 
         self.api_selector.build(frame_left)
 
@@ -106,9 +102,6 @@ class App:
 
         notebook.add(frame_exclude, text="Field Exclusion")
         notebook.add(frame_ai, text="AI Summarizer")
-
-        # ====INIT STATE====
-        self._on_mode_select(self.mode_selector.get_value())
 
         # ====RUN LOOP====
         self.root.mainloop()
@@ -148,9 +141,6 @@ class App:
         ctx_window = TimeframeSelector(frame, self.ctx_time, "Context Timeframe: ")
         ctx_window.pack(padx=3, pady=3, anchor="w")
 
-        group_checkbox = tk.Checkbutton(frame, variable=self.group_enabled, text="Enable Grouping")
-        group_checkbox.pack(padx=3, pady=3, anchor="w")
-
         ctx_fields = PresetText(frame,  self.context_presets, "Context Fields (comma seperated): ")
         ctx_fields.pack(padx=3, pady=3)
         self.ctx_fields = ctx_fields
@@ -178,18 +168,6 @@ class App:
         include_button.deselect()
 
         return frame
-
-    def _on_mode_select(self, mode):
-        """
-        mode select event handler
-        """
-        match mode:
-            case "single":
-                self.id_input.set_enabled(True)
-                self.index_input.set_enabled(True)
-            case "multi":
-                self.id_input.set_enabled(False)
-                self.index_input.set_enabled(False)
 
     def _run_date_range(self):
         main_runner = MainRunner(self._get_options(), self.out_path.get())
