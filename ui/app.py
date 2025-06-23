@@ -72,11 +72,6 @@ class App:
 
         self.api_selector.build(frame_left)
 
-        self.id_input = LabeledEntry(frame_left,"Event ID: ", self.id_var)
-        self.id_input.pack(padx=3, pady=3, anchor="w")
-        self.index_input = LabeledEntry(frame_left,"Index: ", self.index_var)
-        self.index_input.pack(padx=3, pady=3, anchor="w")
-
         self.limit.set(str(DEFAULT_LIMIT))
         field_limit = LabeledSpinbox(frame_left, "Request Limit: ", self.limit)
         field_limit.pack(padx=3, pady=3)
@@ -84,6 +79,11 @@ class App:
         self.out_path.set(DEFAULT_OUT_DIR)
         out_file_select = FileSelector(frame_left, "Output Dir: ", self.out_path)
         out_file_select.pack(padx=3, pady=3, anchor="w")
+
+        self.id_input = LabeledEntry(frame_left,"Event ID: ", self.id_var)
+        self.id_input.pack(padx=3, pady=3, anchor="w")
+        self.index_input = LabeledEntry(frame_left,"Index: ", self.index_var)
+        self.index_input.pack(padx=3, pady=3, anchor="w")
 
         button_execute = tk.Button(frame_left, text="Execute", command=self._on_button)
         button_execute.pack()
@@ -207,7 +207,7 @@ class App:
             api = self.api_selector.get_api()
 
             ## RUN CONFIRMATION
-            if api != "ALL":
+            if api != "ALL": # todo this should run off checkbox state
                 confirmation = self.runner.confirm(api, main_runner)
                 pass # count for all
             else:
