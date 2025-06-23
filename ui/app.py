@@ -31,6 +31,7 @@ class App:
         self.runner = api_runner
         self.ai_client = ai_client
         self.root = tk.Tk()
+        self.run_all = tk.BooleanVar()
         self.limit = tk.StringVar()
         self.out_path = tk.StringVar()
         self.start_date_var = tk.StringVar()
@@ -118,6 +119,9 @@ class App:
         :param parent: parent for the frame
         """
         frame = tk.Frame(parent)
+        checkbox = tk.Checkbutton(frame, text="Run on all APIs", variable=self.run_all)
+        checkbox.deselect()
+        checkbox.pack(anchor="w", padx=3, pady=3)
 
         start_date = DateSelector(frame,"Start Date: ", self.start_date_var, initial=DEFAULT_START_DATE)
         start_date.pack(padx=3, pady=3)
@@ -173,11 +177,9 @@ class App:
             case "single":
                 self.id_input.set_enabled(True)
                 self.index_input.set_enabled(True)
-                self.api_selector.disable_multi()
             case "multi":
                 self.id_input.set_enabled(False)
                 self.index_input.set_enabled(False)
-                self.api_selector.enable_multi()
 
     def _on_button(self): # button event handler
         threading.Thread(target=self._confirm_then_run()).start() # this is probably a memory leak
@@ -212,7 +214,7 @@ class App:
             api = self.api_selector.get_api()
 
             ## RUN CONFIRMATION
-            if api != "ALL": # todo this should run off checkbox state
+            if not self.run_all.get():
                 confirmation = self.runner.confirm(api, main_runner)
                 pass # count for all
             else:

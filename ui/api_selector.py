@@ -13,9 +13,7 @@ class APISelector:
         """
         self.apis = apis
         self.selected_api = StringVar()
-        self.run_all = IntVar()
         self.dropdown:ttk.OptionMenu = None
-        self.checkbox:tk.Checkbutton|None = None
 
     def build(self, parent):
         """
@@ -40,38 +38,13 @@ class APISelector:
         dropdown.grid(column=1, row=0)
         self.dropdown = dropdown
 
-        checkbox = tk.Checkbutton(frame, text="Run on all APIs", variable=self.run_all)
-        checkbox.deselect()
-        checkbox.config(command=self._on_checkbox_change)
-        checkbox.grid(column=0, row=1, columnspan=2, sticky="w")
-        self.checkbox = checkbox
 
     def _on_selected_change(self, selected):
         self.selected_api.set(selected)
-
-    def _on_checkbox_change(self):
-        self.dropdown.config(state=tk.DISABLED if self.run_all.get() else tk.NORMAL)
 
     def get_api(self):
         """
         get the selected api
         :return: string id of the selected api ('ALL' if all selected)
         """
-        if self.run_all.get():
-            return "ALL"
-        else:
-            return self.selected_api.get()
-
-    def enable_multi(self):
-        """
-        enable multi api query checkbox
-        """
-        self.checkbox.config(state=tk.NORMAL)
-
-    def disable_multi(self):
-        """
-        disable multi api query checkbox
-        """
-        self.checkbox.deselect()
-        self._on_checkbox_change() # this event should be triggered, bit weird
-        self.checkbox.config(state=tk.DISABLED)
+        return self.selected_api.get()
