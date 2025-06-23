@@ -15,6 +15,7 @@ from ui.ai_menu import AIMenu
 from ui.api_selector import APISelector
 from ui.confirmation import ConfirmationDialog
 from ui.date_selector import DateSelector
+from ui.exec_strategy import Strategy, SingleAPIStrategy, AllAPIStrategy
 from ui.file_selector import FileSelector
 from ui.labeled_field import LabeledSpinbox, LabeledEntry
 from ui.mode_selector import ModeSelector
@@ -25,18 +26,23 @@ DEFAULT_OUT_DIR = "./out/"
 DEFAULT_END_DATE = str(datetime.date.today())
 DEFAULT_START_DATE = str(datetime.date.today() - datetime.timedelta(days=5))
 
+def threaded(fn):
+    def inner(self, runner):
+        threading.Thread(target=fn,args=(self,runner)).start() # this is probably a memory leak
+    return inner
+
 class App:
     def __init__(self, api_runner:ApiRunner, config:dict, ai_client:AIClient):
         self.apis = api_runner.get_apis()
         self.runner = api_runner
         self.ai_client = ai_client
         self.root = tk.Tk()
+        self.run_all = tk.BooleanVar()
         self.limit = tk.StringVar()
         self.out_path = tk.StringVar()
         self.start_date_var = tk.StringVar()
         self.end_date_var = tk.StringVar()
         self.api_selector = APISelector(self.apis)
-        self.mode_selector = None
         self.id_input:LabeledEntry|None = None
         self.id_var = tk.StringVar()
         self.index_input:LabeledEntry|None = None
@@ -49,7 +55,6 @@ class App:
 
         self.ctx_time = tk.StringVar()
         self.ctx_fields:PresetText|None = None
-        self.group_enabled = tk.BooleanVar(value=False)
 
         self.exclude_fields:PresetText|None = None
 
@@ -64,18 +69,11 @@ class App:
         frame_left = tk.Frame(self.root, width=300)
         frame_left.grid(row=0, column=0, sticky="n")
         frame_right = tk.Frame(self.root, width=300)
-        frame_right.grid(row=0, column=1)
+        frame_right.grid(row=0, column=1, sticky="n")
 
         # ====Left====
-        self.mode_selector = ModeSelector(frame_left, self._on_mode_select)
-        self.mode_selector.pack(padx=3, pady=3, anchor="w")
 
         self.api_selector.build(frame_left)
-
-        self.id_input = LabeledEntry(frame_left,"Event ID: ", self.id_var)
-        self.id_input.pack(padx=3, pady=3, anchor="w")
-        self.index_input = LabeledEntry(frame_left,"Index: ", self.index_var)
-        self.index_input.pack(padx=3, pady=3, anchor="w")
 
         self.limit.set(str(DEFAULT_LIMIT))
         field_limit = LabeledSpinbox(frame_left, "Request Limit: ", self.limit)
@@ -85,29 +83,25 @@ class App:
         out_file_select = FileSelector(frame_left, "Output Dir: ", self.out_path)
         out_file_select.pack(padx=3, pady=3, anchor="w")
 
-        button_execute = tk.Button(frame_left, text="Execute", command=self._on_button)
-        button_execute.pack()
-        self.exec_state.trace_add( # calback for button to be disabled while queries are executing
-            "write",
-            lambda x, idx, mode: button_execute.configure(state=tk.DISABLED if self.exec_state.get() else tk.NORMAL))
+        modes_book = ttk.Notebook(frame_left)
+        modes_book.pack(fill="both", expand=True)
+
+        frame_calendar = self._create_calendar_frame(frame_left)
+        frame_grouping = self._create_grouping_frame(frame_left)
+
+        modes_book.add(frame_grouping, text="Grouping")
+        modes_book.add(frame_calendar, text="Date Range")
 
         # ====Right====
         notebook = ttk.Notebook(frame_right)
         notebook.pack(fill="both", expand=True)
 
         # Calendars
-        frame_calendar = self._create_calendar_frame(frame_right)
-        frame_grouping = self._create_grouping_frame(frame_right)
         frame_ai = AIMenu(frame_right, self.ai_client,self.prompt_list)
         frame_exclude = self._create_exclusion_frame(frame_right)
 
-        notebook.add(frame_calendar, text="Date Range")
-        notebook.add(frame_grouping, text="Grouping")
-        notebook.add(frame_ai, text="AI Summarizer")
         notebook.add(frame_exclude, text="Field Exclusion")
-
-        # ====INIT STATE====
-        self._on_mode_select(self.mode_selector.get_value())
+        notebook.add(frame_ai, text="AI Summarizer")
 
         # ====RUN LOOP====
         self.root.mainloop()
@@ -118,6 +112,9 @@ class App:
         :param parent: parent for the frame
         """
         frame = tk.Frame(parent)
+        checkbox = tk.Checkbutton(frame, text="Run on all APIs", variable=self.run_all)
+        checkbox.deselect()
+        checkbox.pack(anchor="w", padx=3, pady=3)
 
         start_date = DateSelector(frame,"Start Date: ", self.start_date_var, initial=DEFAULT_START_DATE)
         start_date.pack(padx=3, pady=3)
@@ -125,6 +122,7 @@ class App:
         end_date = DateSelector(frame,"End Date: ", self.end_date_var, initial=DEFAULT_END_DATE)
         end_date.pack(padx=3, pady=3)
 
+        self._make_button(frame, self._run_date_range, "Exec Date Range")
 
         return frame
 
@@ -135,17 +133,28 @@ class App:
         :param parent: parent for the frame
         """
         frame = tk.Frame(parent)
-        ctx_window = TimeframeSelector(frame, self.ctx_time, "Context Timeframe: ")
-        ctx_window.pack(padx=3, pady=3)
 
-        group_checkbox = tk.Checkbutton(frame, variable=self.group_enabled, text="Enable Grouping")
-        group_checkbox.pack(padx=3, pady=3, anchor="w")
+        self.id_input = LabeledEntry(frame,"Event ID: ", self.id_var)
+        self.id_input.pack(padx=3, pady=3, anchor="w")
+        self.index_input = LabeledEntry(frame,"Index: ", self.index_var)
+        self.index_input.pack(padx=3, pady=3, anchor="w")
+        ctx_window = TimeframeSelector(frame, self.ctx_time, "Context Timeframe: ")
+        ctx_window.pack(padx=3, pady=3, anchor="w")
 
         ctx_fields = PresetText(frame,  self.context_presets, "Context Fields (comma seperated): ")
         ctx_fields.pack(padx=3, pady=3)
         self.ctx_fields = ctx_fields
 
+        self._make_button(frame, self._run_grouping,"Exec Grouping")
+
         return frame
+
+    def _make_button(self, frame, cb, text):
+        button_execute = tk.Button(frame, text=text, command=cb)
+        button_execute.pack(anchor="s")
+        self.exec_state.trace_add( # callback for button to be disabled while queries are executing
+            "write",
+            lambda x, idx, mode: button_execute.configure(state=tk.DISABLED if self.exec_state.get() else tk.NORMAL))
 
     def _create_exclusion_frame(self, parent):
         frame = tk.Frame(parent)
@@ -160,30 +169,26 @@ class App:
 
         return frame
 
-    def _on_mode_select(self, mode):
-        """
-        mode select event handler
-        """
-        match mode:
-            case "single":
-                self.id_input.set_enabled(True)
-                self.index_input.set_enabled(True)
-                self.api_selector.disable_multi()
-            case "multi":
-                self.id_input.set_enabled(False)
-                self.index_input.set_enabled(False)
-                self.api_selector.enable_multi()
+    def _run_date_range(self):
+        main_runner = MainRunner(self._get_options(), self.out_path.get())
+        if self.run_all.get:
+            self._confirm_run_all(main_runner)
+        else:
+            self._confirm_run_one(main_runner)
 
-    def _on_button(self): # button event handler
-        threading.Thread(target=self._confirm_then_run()).start() # this is probably a memory leak
+    def _run_grouping(self):
+        main_runner = GroupingRunner(
+            self._get_options(),
+            self.out_path.get(),
+            self.id_var.get(),
+            index=self.index_var.get(),
+            context_window=int(self.ctx_time.get()),
+            context_fields=self.ctx_fields.get()
+        )
+        self._confirm_run_one(main_runner)
 
-    def _confirm_then_run(self):
-        """
-        confirm the user wants to run the query then run it
-        """
-        self.exec_state.set(True) # this is the only place where these are written to so no lock should be needed
-
-        options = QueryOptions(
+    def _get_options(self):
+        return QueryOptions(
             self.start_date_var.get(),
             self.end_date_var.get(),
             int(self.limit.get()),
@@ -191,43 +196,31 @@ class App:
             self.fields_list_include.get()
         )
 
-        # todo separate single and multi support see #23
+    @threaded
+    def _confirm_run_one(self, main_runner):
+        self._confirm_then_run(SingleAPIStrategy(main_runner, self.runner, self.api_selector.get_api()))
+
+    @threaded
+    def _confirm_run_all(self, main_runner):
+        self._confirm_then_run(AllAPIStrategy(main_runner, self.runner))
+
+    def _confirm_then_run(self, strategy:Strategy):
+        """
+        confirm the user wants to run the query then run it
+        """
+        self.exec_state.set(True) # this is the only place where these are written to so no lock should be needed
+
         try:
-            if self.group_enabled.get():
-                main_runner = GroupingRunner(
-                    options,
-                    self.out_path.get(),
-                    self.id_var.get(),
-                    index=self.index_var.get(),
-                    context_window=int(self.ctx_time.get()),
-                    context_fields=self.ctx_fields.get()
-                )
-            else:
-                main_runner = MainRunner(options, self.out_path.get())
-
-            api = self.api_selector.get_api()
-
-            ## RUN CONFIRMATION
-            if api != "ALL":
-                confirmation = self.runner.confirm(api, main_runner)
-                pass # count for all
-            else:
-                confirmation = self.runner.confirm_all(main_runner)
-                pass # count for one
-
-            confirmed = tk.BooleanVar()
-            ConfirmationDialog(self.root, "Confirm Query", confirmation, confirmed)
-
-            ## RUN FETCH
-            if confirmed.get(): # exit early if we fail to confirm
-                if api != "ALL": # check if we are running for all apis
-                    self.runner.run(api, main_runner)
-                else:
-                    self.runner.run_all(main_runner)
-                    lib.output.combine_jsonl(self.out_path.get())
+            confirmation = strategy.confirm()
+            if self._confirm(confirmation): # exit early if we fail to confirm
+                strategy.run()
         except Exception as e:
             print("Exception occurred while running the query:", e)
 
         self.exec_state.set(False)
+    def _confirm(self, confirmation):
+        confirmed = tk.BooleanVar()
+        ConfirmationDialog(self.root, "Confirm Query", confirmation, confirmed)
+        return confirmed.get()
 
 

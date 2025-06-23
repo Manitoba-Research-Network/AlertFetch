@@ -65,13 +65,9 @@ class AIMenu(tk.Frame):
             start_path=DEFAULT_OUTPUT_DIR)
         out_field.pack(anchor="w", padx=3, pady=3)
 
-        pre_process_drop = ttk.OptionMenu(self, self.json_process_mode, self.json_process_modes[0], *self.json_process_modes)
-        pre_process_drop.pack(anchor="w", padx=3, pady=3)
-        pre_process_drop.config(width=20)
 
-        drop = ttk.OptionMenu(self, self.pipeline_type, list(self.pipeline_lut.keys())[0], *self.pipeline_lut.keys())
-        drop.pack(anchor="w", padx=3, pady=3)
-        drop.config(width=20)
+        mode_options = self._mode_options(self)
+        mode_options.pack(anchor="w", padx=3, pady=3)
 
         prompt_combo = ttk.Combobox(self, textvariable=self.prompt, values=self.prompt_list)
         prompt_combo.pack(anchor="w", padx=3, pady=3)
@@ -94,6 +90,21 @@ class AIMenu(tk.Frame):
         if self.out_file.get():
             pipe.add_step(WriteData(self.out_file.get()))
         print(pipe.execute(self.in_file.get()))
+
+    def _mode_options(self, parent):
+        frame = tk.Frame(parent)
+        tk.Label(frame, text="Text Mode:").grid(row=0, column=0, padx=3, pady=3,sticky="e")
+        pre_process_drop = ttk.OptionMenu(frame, self.json_process_mode, self.json_process_modes[0], *self.json_process_modes)
+        pre_process_drop.grid(row=0, column=1, padx=3, pady=3)
+        pre_process_drop.config(width=20)
+
+        tk.Label(frame, text="Process Mode:").grid(row=1, column=0, padx=3, pady=3,sticky="e")
+        drop = ttk.OptionMenu(frame, self.pipeline_type, list(self.pipeline_lut.keys())[0], *self.pipeline_lut.keys())
+        drop.grid(row=1, column=1, padx=3, pady=3)
+        drop.config(width=20)
+
+
+        return frame
 
     def _intermediate_options(self, parent):
         frame = tk.Frame(parent)
