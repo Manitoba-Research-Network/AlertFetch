@@ -64,7 +64,7 @@ class App:
         frame_left = tk.Frame(self.root, width=300)
         frame_left.grid(row=0, column=0, sticky="n")
         frame_right = tk.Frame(self.root, width=300)
-        frame_right.grid(row=0, column=1)
+        frame_right.grid(row=0, column=1, sticky="n")
 
         # ====Left====
         self.mode_selector = ModeSelector(frame_left, self._on_mode_select)
@@ -91,20 +91,25 @@ class App:
             "write",
             lambda x, idx, mode: button_execute.configure(state=tk.DISABLED if self.exec_state.get() else tk.NORMAL))
 
+        modes_book = ttk.Notebook(frame_left)
+        modes_book.pack(fill="both", expand=True)
+
+        frame_calendar = self._create_calendar_frame(frame_left)
+        frame_grouping = self._create_grouping_frame(frame_left)
+
+        modes_book.add(frame_grouping, text="Grouping")
+        modes_book.add(frame_calendar, text="Date Range")
+
         # ====Right====
         notebook = ttk.Notebook(frame_right)
         notebook.pack(fill="both", expand=True)
 
         # Calendars
-        frame_calendar = self._create_calendar_frame(frame_right)
-        frame_grouping = self._create_grouping_frame(frame_right)
         frame_ai = AIMenu(frame_right, self.ai_client,self.prompt_list)
         frame_exclude = self._create_exclusion_frame(frame_right)
 
-        notebook.add(frame_calendar, text="Date Range")
-        notebook.add(frame_grouping, text="Grouping")
-        notebook.add(frame_ai, text="AI Summarizer")
         notebook.add(frame_exclude, text="Field Exclusion")
+        notebook.add(frame_ai, text="AI Summarizer")
 
         # ====INIT STATE====
         self._on_mode_select(self.mode_selector.get_value())
