@@ -80,11 +80,6 @@ class App:
         out_file_select = FileSelector(frame_left, "Output Dir: ", self.out_path)
         out_file_select.pack(padx=3, pady=3, anchor="w")
 
-        self.id_input = LabeledEntry(frame_left,"Event ID: ", self.id_var)
-        self.id_input.pack(padx=3, pady=3, anchor="w")
-        self.index_input = LabeledEntry(frame_left,"Index: ", self.index_var)
-        self.index_input.pack(padx=3, pady=3, anchor="w")
-
         button_execute = tk.Button(frame_left, text="Execute", command=self._on_button)
         button_execute.pack()
         self.exec_state.trace_add( # calback for button to be disabled while queries are executing
@@ -140,8 +135,13 @@ class App:
         :param parent: parent for the frame
         """
         frame = tk.Frame(parent)
+
+        self.id_input = LabeledEntry(frame,"Event ID: ", self.id_var)
+        self.id_input.pack(padx=3, pady=3, anchor="w")
+        self.index_input = LabeledEntry(frame,"Index: ", self.index_var)
+        self.index_input.pack(padx=3, pady=3, anchor="w")
         ctx_window = TimeframeSelector(frame, self.ctx_time, "Context Timeframe: ")
-        ctx_window.pack(padx=3, pady=3)
+        ctx_window.pack(padx=3, pady=3, anchor="w")
 
         group_checkbox = tk.Checkbutton(frame, variable=self.group_enabled, text="Enable Grouping")
         group_checkbox.pack(padx=3, pady=3, anchor="w")
