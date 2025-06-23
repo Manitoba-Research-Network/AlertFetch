@@ -15,6 +15,7 @@ from ui.ai_menu import AIMenu
 from ui.api_selector import APISelector
 from ui.confirmation import ConfirmationDialog
 from ui.date_selector import DateSelector
+from ui.exec_strategy import Strategy, SingleAPIStrategy, AllAPIStrategy
 from ui.file_selector import FileSelector
 from ui.labeled_field import LabeledSpinbox, LabeledEntry
 from ui.mode_selector import ModeSelector
@@ -24,6 +25,11 @@ DEFAULT_LIMIT = 100
 DEFAULT_OUT_DIR = "./out/"
 DEFAULT_END_DATE = str(datetime.date.today())
 DEFAULT_START_DATE = str(datetime.date.today() - datetime.timedelta(days=5))
+
+def threaded(fn):
+    def inner(self, runner):
+        threading.Thread(target=fn,args=(self,runner)).start() # this is probably a memory leak
+    return inner
 
 class App:
     def __init__(self, api_runner:ApiRunner, config:dict, ai_client:AIClient):
@@ -81,12 +87,6 @@ class App:
         out_file_select = FileSelector(frame_left, "Output Dir: ", self.out_path)
         out_file_select.pack(padx=3, pady=3, anchor="w")
 
-        button_execute = tk.Button(frame_left, text="Execute", command=self._on_button)
-        button_execute.pack()
-        self.exec_state.trace_add( # calback for button to be disabled while queries are executing
-            "write",
-            lambda x, idx, mode: button_execute.configure(state=tk.DISABLED if self.exec_state.get() else tk.NORMAL))
-
         modes_book = ttk.Notebook(frame_left)
         modes_book.pack(fill="both", expand=True)
 
@@ -129,6 +129,7 @@ class App:
         end_date = DateSelector(frame,"End Date: ", self.end_date_var, initial=DEFAULT_END_DATE)
         end_date.pack(padx=3, pady=3)
 
+        self._make_button(frame, self._run_date_range, "Exec Date Range")
 
         return frame
 
@@ -154,7 +155,16 @@ class App:
         ctx_fields.pack(padx=3, pady=3)
         self.ctx_fields = ctx_fields
 
+        self._make_button(frame, self._run_grouping,"Exec Grouping")
+
         return frame
+
+    def _make_button(self, frame, cb, text):
+        button_execute = tk.Button(frame, text=text, command=cb)
+        button_execute.pack(anchor="s")
+        self.exec_state.trace_add( # callback for button to be disabled while queries are executing
+            "write",
+            lambda x, idx, mode: button_execute.configure(state=tk.DISABLED if self.exec_state.get() else tk.NORMAL))
 
     def _create_exclusion_frame(self, parent):
         frame = tk.Frame(parent)
@@ -181,16 +191,26 @@ class App:
                 self.id_input.set_enabled(False)
                 self.index_input.set_enabled(False)
 
-    def _on_button(self): # button event handler
-        threading.Thread(target=self._confirm_then_run()).start() # this is probably a memory leak
+    def _run_date_range(self):
+        main_runner = MainRunner(self._get_options(), self.out_path.get())
+        if self.run_all.get:
+            self._confirm_run_all(main_runner)
+        else:
+            self._confirm_run_one(main_runner)
 
-    def _confirm_then_run(self):
-        """
-        confirm the user wants to run the query then run it
-        """
-        self.exec_state.set(True) # this is the only place where these are written to so no lock should be needed
+    def _run_grouping(self):
+        main_runner = GroupingRunner(
+            self._get_options(),
+            self.out_path.get(),
+            self.id_var.get(),
+            index=self.index_var.get(),
+            context_window=int(self.ctx_time.get()),
+            context_fields=self.ctx_fields.get()
+        )
+        self._confirm_run_one(main_runner)
 
-        options = QueryOptions(
+    def _get_options(self):
+        return QueryOptions(
             self.start_date_var.get(),
             self.end_date_var.get(),
             int(self.limit.get()),
@@ -198,42 +218,31 @@ class App:
             self.fields_list_include.get()
         )
 
+    @threaded
+    def _confirm_run_one(self, main_runner):
+        self._confirm_then_run(SingleAPIStrategy(main_runner, self.runner, self.api_selector.get_api()))
+
+    @threaded
+    def _confirm_run_all(self, main_runner):
+        self._confirm_then_run(AllAPIStrategy(main_runner, self.runner))
+
+    def _confirm_then_run(self, strategy:Strategy):
+        """
+        confirm the user wants to run the query then run it
+        """
+        self.exec_state.set(True) # this is the only place where these are written to so no lock should be needed
+
         try:
-            if self.group_enabled.get():
-                main_runner = GroupingRunner(
-                    options,
-                    self.out_path.get(),
-                    self.id_var.get(),
-                    index=self.index_var.get(),
-                    context_window=int(self.ctx_time.get()),
-                    context_fields=self.ctx_fields.get()
-                )
-            else:
-                main_runner = MainRunner(options, self.out_path.get())
-
-            api = self.api_selector.get_api()
-
-            ## RUN CONFIRMATION
-            if not self.run_all.get():
-                confirmation = self.runner.confirm(api, main_runner)
-                pass # count for all
-            else:
-                confirmation = self.runner.confirm_all(main_runner)
-                pass # count for one
-
-            confirmed = tk.BooleanVar()
-            ConfirmationDialog(self.root, "Confirm Query", confirmation, confirmed)
-
-            ## RUN FETCH
-            if confirmed.get(): # exit early if we fail to confirm
-                if api != "ALL": # check if we are running for all apis
-                    self.runner.run(api, main_runner)
-                else:
-                    self.runner.run_all(main_runner)
-                    lib.output.combine_jsonl(self.out_path.get())
+            confirmation = strategy.confirm()
+            if self._confirm(confirmation): # exit early if we fail to confirm
+                strategy.run()
         except Exception as e:
             print("Exception occurred while running the query:", e)
 
         self.exec_state.set(False)
+    def _confirm(self, confirmation):
+        confirmed = tk.BooleanVar()
+        ConfirmationDialog(self.root, "Confirm Query", confirmation, confirmed)
+        return confirmed.get()
 
 
