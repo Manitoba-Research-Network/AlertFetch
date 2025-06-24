@@ -171,7 +171,7 @@ class App:
 
     def _run_date_range(self):
         main_runner = MainRunner(self._get_options(), self.out_path.get())
-        if self.run_all.get:
+        if self.run_all.get():
             self._confirm_run_all(main_runner)
         else:
             self._confirm_run_one(main_runner)
