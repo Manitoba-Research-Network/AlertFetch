@@ -2,6 +2,7 @@ from abc import abstractmethod, ABC
 
 
 class PipelineStep(ABC):
+    """Abstract class for pipeline steps"""
     @abstractmethod
     def run(self, data):
         """
