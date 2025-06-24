@@ -1,38 +1,44 @@
 # AlertFetcher
-Simple script for fetching alert source events and non alerting events, then processing them into the `jsonl` data for use with Llama.
+Simple UI for fetching events from an Elastic SIEM and summarizing them using AI.
 
 Originally forked from: https://github.com/IPG5/AlertFetch
 
 ## Usage
 ### Environment
-#### Python Packages
 Install required packages with:
 
 ```pip install -r requirements.txt```
 
-#### .env file
-The script requires a file called `.env` with the following format:
-
-```
-ES_URL=<Elastic API URL>
-API_KEY=<Elastic API Key>
-```
+### Config
 #### config.json
-`exclude`: Contains a list of json paths to remove from events before writing to the output.
+`exclude`: dict where the keys are names of lists of fields for use in the `Field Exclusion` pane of the ui
+
+`context_fields`: dict where the keys are names of lists of fields used in the `Context Fields` section of the `Grouping` Pane
+
+`prompts`: list of prompts for use with AI in the `AI Summarizer` pane
+
+#### apis.json
+Dict of the form:
+```json
+{
+  "<API_NAME>": {
+    "key": "<API KEY>",
+    "uri": "<API ENDPOINT>"
+  }
+}
+```
+This defines the apis that can be used in the API dropdown.
+
+#### openai.json
+Dict containing the details for the OpenAI API the AI summarizer will use.
+```json
+{
+  "api_key": "<API KEY>",
+  "base_url": "<API ENDPOINT>"
+}
+```
+*note the base_url should probably end with `/v1`*
 
 ### Running
 
-To get alert source events and events which did not trigger an event 
-during a time period (defaulting to the last 5 hours)
-```
-python3 AlertFetcher.py out=<output file> no_alert=[output file] index=[alert index pattern] end=[ISO Timestamp] start=[ISO Timestamp]
-```
-
-`end` and `start` specify the timeperiod to search through for alerts/events 
-(note that for alerts this searches the time alert was created not the source event).
-
-`index` specifies a pattern for indices to search for alerts, by default it is `.internal.alerts-security.alerts-default-*`. 
-
-`out` specifies a file to output the `jsonl` data to. **This is the only required argument.**
-
-`no_alert` specifies a file to output the non alerting events to (for use as input into a model).
+Launch the ui with: ```python ./AF_UI.py```
