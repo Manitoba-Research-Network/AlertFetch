@@ -43,7 +43,14 @@ def get_apis() -> dict:
         return json.loads(f.read())
 
 class MainRunner(Runnable):
+    """runner for the timeframe mode"""
     def __init__(self, q_options:QueryOptions,out, index = DEFAULT_INDEX_PAT, no_alert = ""):
+        """
+        :param q_options: options for the query
+        :param out: output directory
+        :param index: index pattern
+        :param no_alert: output dir for non alerting file
+        """
         self.options = q_options
         self.index = index
         self.no_alert = no_alert
@@ -82,6 +89,7 @@ class MainRunner(Runnable):
         return total
 
 
+# deprecated
 if __name__ == "__main__":
     #* Load in command line args
     parser = argparse.ArgumentParser(
