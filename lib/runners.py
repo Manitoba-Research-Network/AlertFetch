@@ -1,5 +1,5 @@
 from lib.api import Runnable
-from lib.output import write_jsonl, write_jsonl_no_label, pretty_print
+from lib.output import write_jsonl_no_label
 from lib.processing import clean_entries
 from lib.retrieval import ESQLWrapper, QueryOptions
 

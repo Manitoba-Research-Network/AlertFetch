@@ -2,15 +2,13 @@ import datetime
 import threading
 import tkinter as tk
 from tkinter import ttk
-from tkinter import simpledialog
 
-import lib.output
 from AlertFetcher import MainRunner
 from ai.AiClient import AIClient
 from lib.api import ApiRunner
 from lib.retrieval import QueryOptions
 from lib.runners import GroupingRunner
-from ui.LabeledText import LabeledText, PresetText
+from ui.LabeledText import PresetText
 from ui.ai_menu import AIMenu
 from ui.api_selector import APISelector
 from ui.confirmation import ConfirmationDialog
@@ -18,7 +16,6 @@ from ui.date_selector import DateSelector
 from ui.exec_strategy import Strategy, SingleAPIStrategy, AllAPIStrategy
 from ui.file_selector import FileSelector
 from ui.labeled_field import LabeledSpinbox, LabeledEntry
-from ui.mode_selector import ModeSelector
 from ui.timeframe_selector import TimeframeSelector
 
 DEFAULT_LIMIT = 100

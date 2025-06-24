@@ -1,9 +1,8 @@
 import json
 
-import lib.processing
 from ai.AiClient import AIClient
-from ui.app import App
 from lib.api import ApiRunner
+from ui.app import App
 
 # Main entry point for the ui
 if __name__ == "__main__":

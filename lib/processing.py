@@ -1,4 +1,3 @@
-import json
 
 def clean_entries(entries, api = None):
     """
