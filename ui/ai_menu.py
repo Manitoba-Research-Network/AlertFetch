@@ -14,6 +14,7 @@ DEFAULT_INPUT_DIR = "./out/"
 DEFAULT_OUTPUT_DIR = "./runs/"
 
 class AIMenu(tk.Frame):
+    """frame for ai execution menu"""
 
     pipeline_lut:dict[str,Callable[[AIClient, str,...],PipelineRunner]] = {
         "Multi Summary":MultiEventSummary,
@@ -27,6 +28,11 @@ class AIMenu(tk.Frame):
     ]
 
     def __init__(self, master, client:AIClient, prompts:list[str] = DEFAULT_PROMPTS):
+        """
+        :param master: parent frame
+        :param client: ai client to use
+        :param prompts: list of prompts to use
+        """
         tk.Frame.__init__(self, master)
         self.in_file = tk.StringVar()
         self.out_file = tk.StringVar()

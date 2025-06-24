@@ -14,6 +14,11 @@ class TimeframeSelector(tk.Frame):
     selector for a time and units for the time
     """
     def __init__(self, parent, out: tk.StringVar, label_text: str):
+        """
+        :param parent: parent frame
+        :param out: output var, outputs in seconds
+        :param label_text: label for the field
+        """
         tk.Frame.__init__(self, parent)
         self.out = out
 

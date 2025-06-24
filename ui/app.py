@@ -32,7 +32,13 @@ def threaded(fn):
     return inner
 
 class App:
+    """main ui class"""
     def __init__(self, api_runner:ApiRunner, config:dict, ai_client:AIClient):
+        """
+        :param api_runner: ApiRunner for the ui instance
+        :param config: config dict
+        :param ai_client: client for the ai
+        """
         self.apis = api_runner.get_apis()
         self.runner = api_runner
         self.ai_client = ai_client

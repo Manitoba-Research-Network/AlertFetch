@@ -25,7 +25,13 @@ class LabeledText(tk.Frame):
 
 
 class PresetText(tk.Frame):
+    """text box with a dropdown for presets"""
     def __init__(self, parent, presets:dict[str,str], label_text:str):
+        """
+        :param parent: parent frame
+        :param presets: dict of presets {"name":"preset text"}
+        :param label_text: label for the box
+        """
         tk.Frame.__init__(self, parent)
         self.presets = presets
 
