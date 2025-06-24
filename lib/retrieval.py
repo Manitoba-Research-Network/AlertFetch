@@ -102,6 +102,9 @@ class QueryOptions:
         self.include = include
 
     def build_args(self):
+        """
+        build esql string of args
+        """
         out = ""
         if self.blacklist is not None:
             out += f"| {'KEEP' if self.include else 'DROP'} {_list_to_string_no_quotes(self.blacklist)}"
@@ -112,6 +115,9 @@ class QueryOptions:
         return out
 
     def build_timerange(self):
+        """
+        get timerange details for this options object
+        """
         return f'| WHERE @timestamp > "{self.date_start}" AND @timestamp < "{self.date_end}"'
 
 
@@ -138,7 +144,14 @@ def _ctx_query(fields:dict, ctx_window:int, timestamp:str, index:str)->str:
 
 
 class ESQLWrapper:
+    """
+    wrapper for ESQL client
+    """
     def __init__(self, es_url:str, api_key:str):
+        """
+        :param es_url: elasticsearch url
+        :param api_key: elasticsearch api key
+        """
         self.client = Elasticsearch(
             hosts=[es_url],
             api_key=api_key
@@ -152,8 +165,6 @@ class ESQLWrapper:
         :param options: options object for the query
         :return: dict of id sets in form {<index>:<set of ids>}
         """
-        if options.date_end == "":  # default to ending now
-            date_end = datetime.datetime.now(datetime.UTC).isoformat()
         res = self.client.esql.query(query=f"""
         FROM {index} 
         {options.build_timerange()}
@@ -211,6 +222,12 @@ class ESQLWrapper:
         return out
 
     def count_from_ids(self, ids:dict, options:QueryOptions)->int:
+        """
+        count the number of events that would be fetched from ids with the given options
+        :param ids: dict of index:[ids]
+        :param options: options for the query
+        :return: number of events that would be fetched
+        """
         out = 0
         for index, id_list in ids.items():
             res = self.client.esql.query(
@@ -225,6 +242,12 @@ class ESQLWrapper:
         return out
 
     def count_inverse_from_ids(self, ids:dict, options:QueryOptions)->int:
+        """
+        count the events not in ids that would be fetched with the given options
+        :param ids: dict of index:[ids]
+        :param options: options for the query
+        :return: number of events that would be fetched
+        """
         out = 0
         for index, id_list in ids.items():
             res = self.client.esql.query(

@@ -7,7 +7,17 @@ DEFAULT_INDEX_PAT = ".internal.alerts-security.alerts-default-*,logs-*"
 
 
 class GroupingRunner(Runnable):
+    """Runner for context grouping"""
     def __init__(self, q_options:QueryOptions,out, record_id, context_fields:list, context_window:int, index, index_pat=DEFAULT_INDEX_PAT):
+        """
+        :param q_options: options for this runners requests
+        :param out: output directory
+        :param record_id: id of the event to query from
+        :param context_fields: fields to use for context
+        :param context_window: context time frame in seconds
+        :param index: index of the event to query from
+        :param index_pat: index pattern for fetching additional events
+        """
         self.out=out
         self.options = q_options
         self.index = index
@@ -19,6 +29,12 @@ class GroupingRunner(Runnable):
         self._event = None
 
     def confirm(self, wrapper: ESQLWrapper, api_id: str) -> int:
+        """
+        count number of events to be fetched from the context
+        :param wrapper: wrapper to use
+        :param api_id: api to fetch from
+        :return: number of events to be fetched
+        """
         print(f"[Counting] {self}")
 
         # * get event from id
@@ -44,6 +60,12 @@ class GroupingRunner(Runnable):
         return fields
 
     def run(self, wrapper: ESQLWrapper, api_id: str):
+        """
+        get events in the context
+        :param wrapper: wrapper to use for the query
+        :param api_id: api to fetch from
+        :return: events in the context
+        """
         print(f"[Running] {self}")
         # * get event from id
         event = self._get_event(wrapper)
