@@ -10,6 +10,10 @@ class AIJsonPreprocess(PipelineStep):
     MODE_NEWLINE = "newline"
 
     def __init__(self, mode:str = MODE_JSON):
+        """
+        :param mode: preprocessing mode to use, json (just output the prettified json) or newline
+                     (output the fields as a newline seperated string)
+        """
         self.mode = mode
         match mode:
             case "json":
@@ -23,7 +27,12 @@ class AIJsonPreprocess(PipelineStep):
         self.runner = runner
 
 
-    def run(self, data):
+    def run(self, data:list[str])->str:
+        """
+        aggregates the string in data into a single string
+        :param data: list of strings to aggregate
+        :return: single string
+        """
         return self.runner(data)
 
     def _for_json(self,data):

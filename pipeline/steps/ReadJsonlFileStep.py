@@ -4,6 +4,8 @@ from pipeline.steps.PipelineStep import PipelineStep
 
 
 class ReadJsonlFileStep(PipelineStep):
+    """step for reading a jsonl file into a list of dicts"""
+
     def run(self, path:str) -> list[dict]:
         """
         load a jsonl file from a path

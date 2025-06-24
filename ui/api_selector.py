@@ -1,5 +1,4 @@
-from tkinter import Frame, StringVar, IntVar
-import tkinter as tk
+from tkinter import Frame, StringVar
 from tkinter import ttk
 
 

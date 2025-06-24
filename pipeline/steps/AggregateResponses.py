@@ -2,6 +2,7 @@ from pipeline.steps import PipelineStep
 
 
 class AggregateResponsesStep(PipelineStep):
+    """Step for aggregating strings into a single larger string"""
     def __init__(self, prefix:str):
         self.prefix = prefix
 

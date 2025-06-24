@@ -1,4 +1,3 @@
-from elastic_transport import ApiResponse
 import json
 import os
 

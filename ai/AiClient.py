@@ -3,7 +3,13 @@ from openai.types.chat import ChatCompletionUserMessageParam, ChatCompletionDeve
 
 
 class AIClient:
+    """Client for an OpenAI API"""
     def __init__(self, api_key:str, base_url:str, model:str):
+        """
+        :param api_key: key for api
+        :param base_url: base url for the api
+        :param model: model to use
+        """
         self.client = OpenAI(
             api_key=api_key,
             base_url=base_url,

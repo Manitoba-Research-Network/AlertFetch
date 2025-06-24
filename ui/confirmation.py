@@ -3,6 +3,7 @@ import tkinter as tk
 
 
 class ConfirmationDialog(simpledialog.Dialog):
+    """confirmation popup dialog"""
     def __init__(self, parent, title, q_text:str, out:tk.BooleanVar):
         """
         :param parent: parent widget

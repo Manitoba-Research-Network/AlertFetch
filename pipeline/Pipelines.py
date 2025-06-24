@@ -59,6 +59,17 @@ def intermediate_summary(
         mode:str = AIJsonPreprocess.MODE_JSON,
         **kwargs
 ) -> PipelineRunner:
+    """
+    run a summary using 1 or more intermediate summary layers
+    :param client: ai client to use
+    :param prompt: prompt for final summary
+    :param compression: number of summaries/events to combine in each intermediate summary layer
+    :param depth: number of intermediate summary layers
+    :param prompt_intermediate: prompt to use in intermediate summaries
+    :param mode: mode to use for json processing
+    :param kwargs: additional args
+    :return: PipelineRunner with given configuration
+    """
     pipeline = _standard_preprocess(mode)
 
     multipipe = PipelineRunner("MultiEventRunner")
@@ -86,15 +97,6 @@ def _standard_preprocess(mode):
     pipeline.add_step(AIJsonPreprocess(mode))  # get the AI input ready
     return pipeline
 
-
-def intermediate_summary_basic(
-        client:AIClient,
-        compression:int,
-        depth:int,
-        prompt:str="The following are summaries from alerts that are all related to each other, write a brief summary of these summaries",
-        prompt_intermediate:str = "The following are related events, please write a brief summary of these events"
-) -> PipelineRunner:
-    return intermediate_summary(client, prompt, [compression for _ in range(depth)], depth,  prompt_intermediate)
 
 def _intermediate_pipe(client:AIClient, prompt:str = "write a 4 sentence summary of this alert data") -> PipelineRunner:
     pipeline = PipelineRunner("SummarizeEvent")

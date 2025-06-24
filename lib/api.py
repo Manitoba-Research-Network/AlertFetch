@@ -75,6 +75,12 @@ class ApiRunner:
                 print(e)
 
     def confirm(self, api_id:str, runnable:Runnable)->str:
+        """
+        get confirmation message for the Run operation
+        :param api_id: id of the api to check
+        :param runnable: runner to use for the operation
+        :return: confirmation message
+        """
         return f"Are you sure you want to fetch {self._confirm(api_id, runnable)} events?"
 
     def _confirm(self, api_id:str, runnable:Runnable) -> int:
@@ -82,6 +88,11 @@ class ApiRunner:
         return runnable.confirm(wrapper, api_id)
 
     def confirm_all(self, runnable:Runnable) -> str:
+        """
+        get confirmation message for the run operation for all apis
+        :param runnable: runner to use for the operation
+        :return: confirmation message
+        """
         total = 0
         for api_id in self.api_creds.keys():
             try:

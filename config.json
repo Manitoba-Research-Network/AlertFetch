@@ -33,12 +33,6 @@
       "@timestamp",
       "event.*",
       "user.name"
-    ],
-    "The Powershell Special": [
-      "process.command_line",
-      "powershell.file.script_block_text",
-      "@timestamp",
-      "user.name"
     ]
   },
   "context_fields" : {
