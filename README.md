@@ -42,3 +42,52 @@ Dict containing the details for the OpenAI API the AI summarizer will use.
 ### Running
 
 Launch the ui with: ```python ./AF_UI.py```
+
+
+#### Grouping
+![](docs/UI_Grouping.png)
+The fields menu on the left defines fields that will be included or excluded from the requested events for both grouping
+and calendar mode. It is in exclude mode by default, enable 'Allowlist Mode' to switch it to include mode.
+
+'Context Timeframe' defines the amount of time around the event that will be searched for events with fields that match
+those defined in 'Context Fields'
+
+#### Calendar
+![](docs/UI_Calendar.png)
+
+#### AI
+![](docs/UI_AI_basic.png)
+
+The AI summarizer takes the output from Grouping or the Calendar mode and can summarize it using a few different modes:
+
+1. Multi Summary &rarr; summarizes each of the events individually then summarizes those summaries
+2. Single Summary &rarr; combines all the events into a single prompt and summarizes them
+3. Intermediate &rarr; performs multiple multi summaries
+
+*The AI can't handle massive prompts so the intermediate mode is required when dealing with large amounts of data*
+
+The 'Text Mode' defines whether the AI will be prompted with newline seperated data or prettified json.
+
+##### Intermediate Mode
+![](docs/UI_AI_intermediate.png)
+Intermediate mode reveals three new fields:
+
+* The second prompt input defines the prompt to use for intermediate fields
+* The 'Depth' field defines the number of intermediate summaries to make
+* The 'Compression' field defines the number of alerts to group together for summaries in each of the intermediate steps
+
+For example the to get the configuration of the below intermediate summary would be a depth of `2` with `3,2` as the 
+compression.  The depth can be seen from the number of summary 'layers' being 3 which corresponds to `depth + 1`, since depth does 
+not include the final summary (meaning that depth=0 is equivalent to a multi summary). The compression can be seen from 
+the first set of summaries using **3** events and the second set of summaries using **2** events, thus `3,2` compression.
+
+Note that when the number of events/summaries is not divisible by the compression for a layer the AI will
+do a summary on the remainder of the summaries. (eg 5 events with a compression of 3 would summarize a group of 3 events 
+and a group of 2 events)
+
+![Diagram explaining how Intermediate summaries and its parameters work](docs/Intermediate.png)
+
+
+
+
+
