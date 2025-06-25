@@ -1,6 +1,7 @@
 import datetime
 import threading
 import tkinter as tk
+import traceback
 from tkinter import ttk
 
 from AlertFetcher import MainRunner
@@ -25,7 +26,8 @@ DEFAULT_START_DATE = str(datetime.date.today() - datetime.timedelta(days=5))
 
 def threaded(fn):
     def inner(self, runner):
-        threading.Thread(target=fn,args=(self,runner)).start() # this is probably a memory leak
+        #threading.Thread(target=fn,args=(self,runner)).start() # this is probably a memory leak
+        fn(self,runner) # todo fix this
     return inner
 
 class App:
@@ -80,31 +82,27 @@ class App:
 
         self.limit.set(str(DEFAULT_LIMIT))
         field_limit = LabeledSpinbox(frame_left, "Request Limit: ", self.limit)
-        field_limit.pack(padx=3, pady=3)
+        field_limit.pack(padx=3, pady=3, anchor="w")
 
         self.out_path.set(DEFAULT_OUT_DIR)
         out_file_select = FileSelector(frame_left, "Output Dir: ", self.out_path)
         out_file_select.pack(padx=3, pady=3, anchor="w")
 
-        modes_book = ttk.Notebook(frame_left)
-        modes_book.pack(fill="both", expand=True)
+        frame_exclude = self._create_exclusion_frame(frame_left)
+        frame_exclude.pack(padx=3, pady=3, anchor="w")
 
-        frame_calendar = self._create_calendar_frame(frame_left)
-        frame_grouping = self._create_grouping_frame(frame_left)
-
-        modes_book.add(frame_grouping, text="Grouping")
-        modes_book.add(frame_calendar, text="Date Range")
 
         # ====Right====
         notebook = ttk.Notebook(frame_right)
         notebook.pack(fill="both", expand=True)
 
-        # Calendars
+        frame_calendar = self._create_calendar_frame(frame_right)
+        frame_grouping = self._create_grouping_frame(frame_right)
         frame_ai = AIMenu(frame_right, self.ai_client,self.prompt_list)
-        frame_exclude = self._create_exclusion_frame(frame_right)
 
-        notebook.add(frame_exclude, text="Field Exclusion")
+        notebook.add(frame_grouping, text="Grouping")
         notebook.add(frame_ai, text="AI Summarizer")
+        notebook.add(frame_calendar, text="Calendar")
 
         # ====RUN LOOP====
         self.root.mainloop()
@@ -219,11 +217,12 @@ class App:
                 strategy.run()
         except Exception as e:
             print("Exception occurred while running the query:", e)
+            traceback.print_exc()
 
         self.exec_state.set(False)
     def _confirm(self, confirmation):
         confirmed = tk.BooleanVar()
-        ConfirmationDialog(self.root, "Confirm Query", confirmation, confirmed)
-        return confirmed.get()
+        dialog = ConfirmationDialog(self.root, "Confirm Query", confirmation, confirmed)
+        return dialog.out.get()
 
 
