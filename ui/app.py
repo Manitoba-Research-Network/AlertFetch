@@ -164,7 +164,7 @@ class App:
         field.pack(anchor="w")
         self.exclude_fields = field
 
-        include_button = tk.Checkbutton(frame, variable=self.fields_list_include, text="Include")
+        include_button = tk.Checkbutton(frame, variable=self.fields_list_include, text="Allowlist Mode")
         include_button.pack(padx=3, pady=3,anchor="w")
         include_button.deselect()
 
