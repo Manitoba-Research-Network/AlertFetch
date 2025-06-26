@@ -54,6 +54,12 @@ those defined in 'Context Fields'
 
 #### Calendar
 ![](docs/UI_Calendar.png)
+This mode will fetch all events in a timerange and give them a label field for whether the event caused an alert
+(1 = alerting, 0 = non alerting). 
+
+Notes:
+ * The 'Request Limit' corresponds to the number of events returned by a single request, this mode makes multiple requests which use that limit
+ * The events fetched will only be from the index of the alerts source events
 
 #### AI
 ![](docs/UI_AI_basic.png)
